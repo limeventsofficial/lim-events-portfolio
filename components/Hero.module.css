@@ -1,0 +1,459 @@
+/* ─── Hero layout ─────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  background: linear-gradient(160deg, #fdf6ee 0%, #fde8d8 40%, #fdf0e0 70%, #fdf6ee 100%);
+  overflow: hidden;
+}
+
+/* ─── Petal rain ──────────────────────────────── */
+.petalLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.petal {
+  position: absolute;
+  top: 0;
+  user-select: none;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 2px 4px rgba(122, 59, 30, 0.15));
+}
+
+/* ─── Left panel ──────────────────────────────── */
+.left {
+  position: relative;
+  z-index: 4;
+  padding: 6rem 3rem 6rem 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(122, 59, 30, 0.08);
+  border: 1px solid rgba(122, 59, 30, 0.18);
+  border-radius: 50px;
+  padding: 6px 16px;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: #7a3b1e;
+  text-transform: uppercase;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c8764a;
+  display: inline-block;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}
+
+.headline {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+  line-height: 1.12;
+  color: #2d1a0e;
+  font-weight: 400;
+}
+
+.accent {
+  font-style: italic;
+  color: #7a3b1e;
+}
+
+.divider {
+  width: 48px;
+  height: 2px;
+  background: linear-gradient(90deg, #c8764a, transparent);
+  border-radius: 2px;
+}
+
+.sub {
+  font-size: 0.97rem;
+  color: #8a6a54;
+  line-height: 1.75;
+  font-weight: 300;
+  max-width: 400px;
+}
+
+/* ─── CTAs ────────────────────────────────────── */
+.ctas {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.primaryBtn {
+  background: #7a3b1e;
+  color: #fdf6ee;
+  padding: 0.8rem 2rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 6px 24px rgba(122, 59, 30, 0.22);
+}
+
+.arrow {
+  font-size: 1rem;
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.primaryBtn:hover .arrow {
+  transform: translateX(3px);
+}
+
+.ghostBtn {
+  color: #7a3b1e;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1.5px solid rgba(122, 59, 30, 0.3);
+  padding-bottom: 2px;
+  transition: border-color 0.2s;
+}
+
+.ghostBtn:hover {
+  border-color: #7a3b1e;
+}
+
+/* ─── Stats row ───────────────────────────────── */
+.stats {
+  display: flex;
+  gap: 2rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(122, 59, 30, 0.12);
+}
+
+.statNum {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #7a3b1e;
+}
+
+.statLabel {
+  font-size: 0.72rem;
+  color: #b08a72;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+/* ─── Right panel ─────────────────────────────── */
+.right {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fde8d8 0%, #fdf0e0 100%);
+  border-left: 1px solid rgba(122, 59, 30, 0.08);
+  z-index: 3;
+}
+
+/* Large decorative background glyph */
+.bgText {
+  position: absolute;
+  font-family: 'Playfair Display', serif;
+  font-size: 11rem;
+  color: rgba(122, 59, 30, 0.05);
+  font-weight: 600;
+  user-select: none;
+  line-height: 1;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ─── Card stack ──────────────────────────────── */
+.cardStack {
+  position: relative;
+  width: 300px;
+  height: 380px;
+}
+
+.cardBack {
+  position: absolute;
+  width: 240px;
+  height: 300px;
+  background: #f2c4a0;
+  border-radius: 20px;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%) rotate(8deg);
+  opacity: 0.5;
+}
+
+.cardMid {
+  position: absolute;
+  width: 240px;
+  height: 300px;
+  background: #e8a07a;
+  border-radius: 20px;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-5deg);
+  opacity: 0.35;
+}
+
+.cardMain {
+  position: absolute;
+  width: 260px;
+  background: #fff8f3;
+  border: 1px solid rgba(122, 59, 30, 0.15);
+  border-radius: 20px;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1.5rem;
+  box-shadow: 0 20px 60px rgba(122, 59, 30, 0.12);
+}
+
+.cardTag {
+  display: inline-block;
+  background: rgba(122, 59, 30, 0.09);
+  color: #7a3b1e;
+  font-size: 0.67rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.cameraWrap {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #fde8d8, #f2c4a0);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  background-image: url('/image/657621754_18309220528279470_1857005626033641820_n.webp');
+}
+
+.cardTitle {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 1rem;
+  color: #2d1a0e;
+  margin-bottom: 0.3rem;
+}
+
+.cardSub {
+  font-size: 0.75rem;
+  color: #b08a72;
+  line-height: 1.5;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(122, 59, 30, 0.1);
+}
+
+/* ─── Avatars (card footer) ───────────────────── */
+.avatarsSm {
+  display: flex;
+  align-items: center;
+}
+
+.av {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #fff8f3;
+  margin-left: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  background: #fde8d8;
+  cursor: default;
+}
+
+.av:first-child {
+  margin-left: 0;
+}
+
+.avPlus {
+  background: #7a3b1e;
+  color: #fdf6ee;
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
+.cardAction {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #7a3b1e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fdf6ee;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* ─── Floating elements ───────────────────────── */
+.floatingMini {
+  position: absolute;
+  left: 20px;
+  top: 80px;
+  background: #fff8f3;
+  border: 1px solid rgba(122, 59, 30, 0.15);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 8px 24px rgba(122, 59, 30, 0.1);
+  width: 150px;
+}
+
+.miniLabel {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #b08a72;
+  margin-bottom: 4px;
+}
+
+.miniVal {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #7a3b1e;
+}
+
+.miniSub {
+  font-size: 0.65rem;
+  color: #b08a72;
+}
+
+.floatingPill {
+  position: absolute;
+  right: 30px;
+  bottom: 140px;
+  background: #fff8f3;
+  border: 1px solid rgba(122, 59, 30, 0.15);
+  border-radius: 50px;
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(122, 59, 30, 0.1);
+  font-size: 0.78rem;
+  color: #7a3b1e;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pillDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6aaa64;
+  flex-shrink: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ─── Bottom fade ─────────────────────────────── */
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to top, #fdf0e0 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ─── Responsive ──────────────────────────────── */
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .left {
+    padding: 5rem 2rem 3rem;
+    align-items: center;
+    text-align: center;
+  }
+
+  .sub {
+    max-width: 100%;
+  }
+
+  .stats {
+    justify-content: center;
+  }
+
+  .right {
+    min-height: 520px;
+    border-left: none;
+    border-top: 1px solid rgba(122, 59, 30, 0.08);
+  }
+
+  .floatingMini,
+  .floatingPill {
+    display: none;
+  }
+
+  .bgText {
+    font-size: 6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .left {
+    padding: 4rem 1.25rem 2rem;
+  }
+
+  .cardStack {
+    width: 260px;
+    height: 340px;
+  }
+
+  .cardMain {
+    width: 230px;
+  }
+}

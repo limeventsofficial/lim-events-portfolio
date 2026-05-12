@@ -1,0 +1,137 @@
+.section {
+  padding: 6rem 2rem;
+  background: linear-gradient(180deg, var(--white) 0%, var(--cream) 100%);
+  position: relative;
+}
+
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--peach), transparent);
+}
+
+.inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.tag {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--peach);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--text-dark);
+  margin: 0.7rem 0 1rem;
+  line-height: 1.2;
+}
+
+.title em {
+  color: var(--brown);
+  font-style: italic;
+}
+
+.sub {
+  color: var(--text-mid);
+  font-size: 1rem;
+  font-weight: 300;
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.75rem;
+}
+
+.card {
+  background: var(--white);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(122, 59, 30, 0.08);
+}
+
+.thumb {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--peach-light);
+}
+
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbPlaceholder {
+  aspect-ratio: 16 / 10;
+  background: linear-gradient(135deg, var(--peach-light), var(--cream));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.placeholderIcon {
+  font-size: 2rem;
+  opacity: 0.35;
+  color: var(--brown);
+}
+
+.badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(253, 246, 238, 0.95);
+  color: var(--brown);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(122, 59, 30, 0.15);
+  font-weight: 600;
+}
+
+.body {
+  padding: 1.35rem 1.35rem 1.5rem;
+}
+
+.cardTitle {
+  font-size: 1.35rem;
+  margin-bottom: 0.35rem;
+  color: var(--text-dark);
+}
+
+.meta {
+  font-size: 0.88rem;
+  color: var(--text-light);
+  margin-bottom: 0.85rem;
+}
+
+.dot {
+  margin: 0 0.35rem;
+  opacity: 0.6;
+}
+
+.story {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--text-mid);
+  font-weight: 300;
+}

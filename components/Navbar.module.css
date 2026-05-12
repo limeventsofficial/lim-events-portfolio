@@ -1,0 +1,259 @@
+/* ─── Wrapper ───────────────────────────────────────
+   At top: no padding, flush to edges.
+   On scroll: padding kicks in on all sides → pill floats.
+──────────────────────────────────────────────────── */
+.navWrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 0;
+  pointer-events: none;
+  transition: padding 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wrapperScrolled {
+  padding: 0.85rem 1.1rem 0;
+}
+
+/* ─── Nav bar ───────────────────────────────────────
+   At top: square, transparent, edge-to-edge.
+   On scroll: rounded pill, glass bg, shadow.
+──────────────────────────────────────────────────── */
+.nav {
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 2rem;
+  border-radius: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  gap: 1rem;
+  transition:
+    border-radius 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    background    0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow    0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color  0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    padding       0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav.scrolled {
+  border-radius: 18px;
+  background: rgba(253, 246, 238, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 4px 32px rgba(122, 59, 30, 0.1);
+  border-color: rgba(122, 59, 30, 0.12);
+  padding: 0.65rem 0.75rem 0.65rem 1.25rem;
+}
+
+/* ─── Logo ──────────────────────────────────────── */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.logoMark {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(122, 59, 30, 0.12);
+  color: #7a3b1e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+.logoMarkScrolled {
+  background: #7a3b1e;
+  color: #fdf6ee;
+}
+
+.logoText {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 1.22rem;
+  font-weight: 700;
+  color: #2d1a0e;
+  letter-spacing: -0.02em;
+}
+
+/* ─── Links ─────────────────────────────────────── */
+.links {
+  display: flex;
+  list-style: none;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+}
+
+.links a {
+  display: block;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #7a3b1e;
+  letter-spacing: 0.02em;
+  padding: 0.4rem 0.9rem;
+  border-radius: 10px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.links a:hover {
+  color: #2d1a0e;
+  background: rgba(122, 59, 30, 0.07);
+}
+
+/* ─── CTA button ────────────────────────────────── */
+.ctaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  /* at top: outlined style, transparent bg */
+  background: rgba(122, 59, 30, 0.1);
+  color: #7a3b1e;
+  border: 1px solid rgba(122, 59, 30, 0.25);
+  padding: 0.55rem 1.15rem;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* on scroll: filled solid */
+.ctaBtnScrolled {
+  background: #7a3b1e;
+  color: #fdf6ee;
+  border-color: transparent;
+  box-shadow: 0 2px 14px rgba(122, 59, 30, 0.22);
+}
+
+.ctaArrow {
+  font-size: 0.95rem;
+  transition: transform 0.2s;
+}
+
+.ctaBtn:hover .ctaArrow {
+  transform: translateX(2px);
+}
+
+/* ─── Hamburger ─────────────────────────────────── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: rgba(122, 59, 30, 0.08);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 8px;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+}
+
+.hamburger span {
+  display: block;
+  width: 18px;
+  height: 1.8px;
+  background: #7a3b1e;
+  border-radius: 2px;
+}
+
+/* ─── Mobile drawer ─────────────────────────────── */
+.mobileMenu {
+  pointer-events: all;
+  margin-top: 0.5rem;
+  background: rgba(253, 246, 238, 0.97);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(122, 59, 30, 0.12);
+  border-radius: 18px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  box-shadow: 0 8px 40px rgba(122, 59, 30, 0.12);
+}
+
+.mobileLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #2d1a0e;
+  font-size: 1rem;
+  font-weight: 400;
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
+  transition: background 0.18s;
+}
+
+.mobileLink:hover {
+  background: rgba(122, 59, 30, 0.06);
+}
+
+.mobileLinkNum {
+  font-size: 0.65rem;
+  color: #c8764a;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  min-width: 20px;
+}
+
+.mobileCta {
+  display: block;
+  text-align: center;
+  margin-top: 0.5rem;
+  background: #7a3b1e;
+  color: #fdf6ee;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.8rem;
+  border-radius: 12px;
+  letter-spacing: 0.02em;
+  transition: opacity 0.2s;
+}
+
+.mobileCta:hover {
+  opacity: 0.88;
+}
+
+/* ─── Responsive ────────────────────────────────── */
+@media (max-width: 768px) {
+  .links,
+  .ctaBtn {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  /* on mobile at top: still give a tiny side pad so it doesn't glue to screen edge */
+  .wrapperScrolled {
+    padding: 0.65rem 0.65rem 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav {
+    padding: 0.9rem 1.25rem;
+  }
+
+  .nav.scrolled {
+    padding: 0.6rem 0.6rem 0.6rem 1rem;
+  }
+}

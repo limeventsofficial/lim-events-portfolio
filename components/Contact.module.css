@@ -1,0 +1,237 @@
+.section {
+  background: var(--white);
+  position: relative;
+}
+
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--peach), transparent);
+}
+
+.inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 6rem 2rem 4rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  align-items: start;
+}
+
+.tag {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--peach);
+  text-transform: uppercase;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.title {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  color: var(--text-dark);
+  line-height: 1.25;
+  margin-bottom: 1rem;
+}
+
+.title em {
+  color: var(--brown);
+  font-style: italic;
+}
+
+.sub {
+  color: var(--text-mid);
+  font-weight: 300;
+  line-height: 1.7;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.contactDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.detailIcon {
+  font-size: 1.4rem;
+  margin-top: 2px;
+}
+
+.detail strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-dark);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.detail p {
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  margin: 0;
+}
+
+/* Form */
+.right {
+  background: var(--cream);
+  border-radius: 24px;
+  padding: 2.5rem;
+  border: 1.5px solid rgba(122,59,30,0.08);
+}
+
+.formWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.formGroup label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  letter-spacing: 0.02em;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1.5px solid rgba(122,59,30,0.12);
+  background: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: none;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  border-color: var(--peach);
+  box-shadow: 0 0 0 3px rgba(242,169,126,0.15);
+}
+
+.submitBtn {
+  background: var(--brown);
+  color: var(--white);
+  border: none;
+  padding: 0.9rem 2rem;
+  border-radius: 50px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 4px 20px rgba(122,59,30,0.2);
+  margin-top: 0.25rem;
+}
+
+.submitBtn:hover {
+  background: var(--brown-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(122,59,30,0.3);
+}
+
+/* Success */
+.success {
+  text-align: center;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.successEmoji { font-size: 3.5rem; }
+
+.success h3 {
+  font-size: 1.6rem;
+  color: var(--brown);
+}
+
+.success p {
+  color: var(--text-mid);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.resetBtn {
+  background: none;
+  border: 1.5px solid var(--brown);
+  color: var(--brown);
+  padding: 0.6rem 1.5rem;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+}
+
+.resetBtn:hover {
+  background: var(--brown);
+  color: var(--white);
+}
+
+/* Footer */
+.footer {
+  border-top: 1px solid rgba(122,59,30,0.1);
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.footer p {
+  font-size: 0.82rem;
+  color: var(--text-light);
+}
+
+.footer p span { color: var(--peach); }
+
+.footerLinks {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footerLinks a {
+  font-size: 0.82rem;
+  color: var(--text-light);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footerLinks a:hover {
+  color: var(--brown);
+}
+
+@media (max-width: 900px) {
+  .inner {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}
