@@ -20,7 +20,8 @@ export async function POST(req: Request) {
       maxAge: 60 * 60 * 24 * 7,
     })
     return res
-  } catch {
+  } catch (error) {
+    console.log(error)
     return NextResponse.json({ error: 'Login failed' }, { status: 500 })
   }
 }
