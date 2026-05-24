@@ -6,16 +6,13 @@ import { ensureDatabaseSeed } from '@/lib/seed'
 import { destroyCloudinaryAsset } from '@/lib/cloudinary'
 import mongoose from 'mongoose'
 import { normalizeWorkTitle, normalizeWorkLine } from '@/lib/work-fields'
+import { isPhoto, parseServiceId, toWorkClient, validateWorkPayload } from '@/lib/work-mapper'
+import type { WorkPhoto } from '@/lib/work-constants'
 
 export const dynamic = 'force-dynamic'
 
-type PhotoIn = { url: string; publicId?: string }
-
-function isPhoto(x: unknown): x is PhotoIn {
-  return typeof x === 'object' && x !== null && typeof (x as PhotoIn).url === 'string'
-}
-
 type Ctx = { params: { id: string } }
+type PhotoIn = WorkPhoto
 
 export async function PUT(req: Request, { params }: Ctx) {
   const unauthorized = await requireAdmin()
@@ -38,12 +35,20 @@ export async function PUT(req: Request, { params }: Ctx) {
   }
 
   const body = await req.json()
-  const $set: Record<string, unknown> = {}
+  const validation = validateWorkPayload(body)
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 })
+  }
+
+  const serviceId = parseServiceId(body.serviceId)!
+  const $set: Record<string, unknown> = {
+    serviceCat: new mongoose.Types.ObjectId(serviceId),
+    story: typeof body.story === 'string' ? body.story.trim() : '',
+  }
 
   if (typeof body.title === 'string') $set.title = normalizeWorkTitle(body.title)
   if (typeof body.date === 'string') $set.date = normalizeWorkLine(body.date)
   if (typeof body.venue === 'string') $set.venue = normalizeWorkLine(body.venue)
-  if (typeof body.story === 'string') $set.story = body.story
   if (typeof body.order === 'number') $set.order = body.order
 
   if (Array.isArray(body.photos) && body.photos.every(isPhoto)) {
@@ -52,7 +57,7 @@ export async function PUT(req: Request, { params }: Ctx) {
       .filter((id): id is string => typeof id === 'string' && id.length > 0)
     const nextPhotos = body.photos as PhotoIn[]
     const nextIds = new Set(
-      nextPhotos.map((p) => p.publicId).filter((id): id is string => typeof id === 'string' && id.length > 0)
+      nextPhotos.map((p: PhotoIn) => p.publicId).filter((id): id is string => typeof id === 'string' && id.length > 0)
     )
     for (let i = 0; i < oldPublicIds.length; i++) {
       const pid = oldPublicIds[i]
@@ -71,7 +76,7 @@ export async function PUT(req: Request, { params }: Ctx) {
   }
 
   const updated = await Work.findByIdAndUpdate(params.id, { $set }, { new: true }).lean()
-  return NextResponse.json({ work: updated })
+  return NextResponse.json({ work: toWorkClient(updated!) })
 }
 
 export async function DELETE(_req: Request, { params }: Ctx) {

@@ -4,76 +4,49 @@ import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import styles from './admin.module.css'
-
-// ── Types ───────────────────────────────────────────────────────────────────
-type StatPair  = { num: string; label: string }
-type ContactInfo = { address: string; phone: string; email: string }
-type WorkPhoto = { url: string; publicId?: string }
-
-type SiteDoc = {
-  _id?: string
-  heroCoverUrl: string
-  heroCoverPublicId?: string
-  heroStats: StatPair[]
-  aboutStats: StatPair[]
-  contact: ContactInfo
-  siteYear: number
-}
-
-type ServiceDoc = {
-  _id: string
-  order: number
-  icon: string
-  title: string
-  desc: string
-  color: string
-}
-
-type WorkDoc = {
-  _id: string
-  title: string
-  date: string
-  venue: string
-  photos: WorkPhoto[]
-  story: string
-  featured: boolean
-  order: number
-  serviceId?: string
-}
-
-type Tab   = 'site' | 'services' | 'works'
-type Toast = { text: string; type: 'ok' | 'err' } | null
+import { ToastProvider, toast } from '@/components/admin/ToastProvider'
+import { ConfirmModal } from '@/components/admin/ConfirmModal'
+import { AdminButton } from '@/components/admin/AdminButton'
+import { EmptyState } from '@/components/admin/EmptyState'
+import { AdminListSkeleton } from '@/components/admin/Skeleton'
+import { SortableServiceList } from '@/components/admin/SortableServiceList'
+import { WorkCard } from '@/components/admin/WorkCard'
+import { ServiceCreatePanel, emptyServiceDraft } from '@/components/admin/ServiceCreatePanel'
+import { WorkAddPanel } from '@/components/admin/WorkAddPanel'
+import { emptyWorkAddDraft, type WorkAddDraft } from '@/components/admin/WorkAddFields'
+import { uploadFile } from '@/components/admin/upload'
+import { isServiceDraftValid, isWorkDraftValid } from '@/components/admin/validation'
+import type {
+  DeleteTarget,
+  ServiceDoc,
+  ServiceDraft,
+  SiteDoc,
+  StatPair,
+  Tab,
+  WorkDoc,
+} from '@/components/admin/types'
 
 const NAV_ITEMS: { id: Tab; label: string; desc: string; icon: string }[] = [
-  { id: 'site',     label: 'Site & Hero',  desc: 'Cover, stats, contact & year', icon: '✦' },
-  { id: 'services', label: 'Services',     desc: 'Homepage service cards',        icon: '◇' },
-  { id: 'works',    label: 'Portfolio',    desc: 'Past events & photos',           icon: '◎' },
+  { id: 'site', label: 'Site & Hero', desc: 'Cover, stats, contact & year', icon: '✦' },
+  { id: 'services', label: 'Services', desc: 'Homepage service cards', icon: '◇' },
+  { id: 'works', label: 'Portfolio', desc: 'Past events & photos', icon: '◎' },
 ]
 
-// ── Upload helper ────────────────────────────────────────────────────────────
-async function uploadFile(file: File, folder: string) {
-  const fd = new FormData()
-  fd.append('file', file)
-  fd.append('folder', folder)
-  const res  = await fetch('/api/admin/upload', { method: 'POST', body: fd, credentials: 'include' })
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.error || 'Upload failed')
-  return data as { url: string; publicId: string }
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// SUB-COMPONENT: AdminSite
-// ════════════════════════════════════════════════════════════════════════════
 function AdminSite({
-  site, setSite, onSave, onHeroFile,
+  site,
+  setSite,
+  onSave,
+  onHeroFile,
+  saving,
 }: {
   site: SiteDoc
   setSite: (s: SiteDoc) => void
   onSave: (e: React.FormEvent) => void
   onHeroFile: (e: React.ChangeEvent<HTMLInputElement>) => void
+  saving?: boolean
 }) {
   const updateStat = (section: 'heroStats' | 'aboutStats', i: number, field: keyof StatPair, val: string) =>
-    setSite({ ...site, [section]: site[section].map((s, idx) => idx === i ? { ...s, [field]: val } : s) })
+    setSite({ ...site, [section]: site[section].map((s, idx) => (idx === i ? { ...s, [field]: val } : s)) })
   const addStat = (section: 'heroStats' | 'aboutStats') =>
     setSite({ ...site, [section]: [...site[section], { num: '', label: '' }] })
   const removeStat = (section: 'heroStats' | 'aboutStats', i: number) =>
@@ -81,7 +54,6 @@ function AdminSite({
 
   return (
     <form onSubmit={onSave}>
-      {/* Hero cover */}
       <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}>
           <span className={styles.sectionCardIcon}>🖼</span>
@@ -98,11 +70,12 @@ function AdminSite({
             <img src={site.heroCoverUrl} alt="Hero cover preview" />
           </div>
         )}
-        <label className={styles.label} style={{ marginTop: '1rem' }}>Current image URL</label>
+        <label className={styles.label} style={{ marginTop: '1rem' }}>
+          Current image URL
+        </label>
         <input className={styles.input} value={site.heroCoverUrl} readOnly />
       </div>
 
-      {/* Hero stats */}
       <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}>
           <span className={styles.sectionCardIcon}>📊</span>
@@ -117,21 +90,32 @@ function AdminSite({
               <div className={styles.statFields}>
                 <div>
                   <label className={styles.label}>Number</label>
-                  <input className={styles.input} value={s.num} onChange={e => updateStat('heroStats', i, 'num', e.target.value)} />
+                  <input
+                    className={styles.input}
+                    value={s.num}
+                    onChange={(e) => updateStat('heroStats', i, 'num', e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className={styles.label}>Label</label>
-                  <input className={styles.input} value={s.label} onChange={e => updateStat('heroStats', i, 'label', e.target.value)} />
+                  <input
+                    className={styles.input}
+                    value={s.label}
+                    onChange={(e) => updateStat('heroStats', i, 'label', e.target.value)}
+                  />
                 </div>
               </div>
-              <button type="button" className={`${styles.btn} ${styles.btnDanger} ${styles.smallBtn}`} onClick={() => removeStat('heroStats', i)}>Remove</button>
+              <AdminButton type="button" variant="danger" small onClick={() => removeStat('heroStats', i)}>
+                Remove
+              </AdminButton>
             </div>
           ))}
         </div>
-        <button type="button" className={styles.btn} onClick={() => addStat('heroStats')}>+ Add hero stat</button>
+        <AdminButton type="button" onClick={() => addStat('heroStats')}>
+          + Add hero stat
+        </AdminButton>
       </div>
 
-      {/* About stats */}
       <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}>
           <span className={styles.sectionCardIcon}>ℹ️</span>
@@ -146,554 +130,159 @@ function AdminSite({
               <div className={styles.statFields}>
                 <div>
                   <label className={styles.label}>Number</label>
-                  <input className={styles.input} value={s.num} onChange={e => updateStat('aboutStats', i, 'num', e.target.value)} />
+                  <input
+                    className={styles.input}
+                    value={s.num}
+                    onChange={(e) => updateStat('aboutStats', i, 'num', e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className={styles.label}>Label</label>
-                  <input className={styles.input} value={s.label} onChange={e => updateStat('aboutStats', i, 'label', e.target.value)} />
+                  <input
+                    className={styles.input}
+                    value={s.label}
+                    onChange={(e) => updateStat('aboutStats', i, 'label', e.target.value)}
+                  />
                 </div>
               </div>
-              <button type="button" className={`${styles.btn} ${styles.btnDanger} ${styles.smallBtn}`} onClick={() => removeStat('aboutStats', i)}>Remove</button>
+              <AdminButton type="button" variant="danger" small onClick={() => removeStat('aboutStats', i)}>
+                Remove
+              </AdminButton>
             </div>
           ))}
         </div>
-        <button type="button" className={styles.btn} onClick={() => addStat('aboutStats')}>+ Add about stat</button>
+        <AdminButton type="button" onClick={() => addStat('aboutStats')}>
+          + Add about stat
+        </AdminButton>
       </div>
 
-      {/* Contact & footer */}
       <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}>
           <span className={styles.sectionCardIcon}>📞</span>
           <div>
             <h2 className={styles.sectionTitle}>Contact & Footer</h2>
-            <p className={styles.sectionDesc}>Address, phone (used for WhatsApp), email and copyright year</p>
+            <p className={styles.sectionDesc}>Address, phone, email and copyright year</p>
           </div>
         </div>
         <label className={styles.label}>Address</label>
-        <input className={styles.input} value={site.contact.address} onChange={e => setSite({ ...site, contact: { ...site.contact, address: e.target.value } })} />
+        <input
+          className={styles.input}
+          value={site.contact.address}
+          onChange={(e) => setSite({ ...site, contact: { ...site.contact, address: e.target.value } })}
+        />
         <label className={styles.label}>Phone — include country code e.g. 919876543210</label>
-        <input className={styles.input} value={site.contact.phone} onChange={e => setSite({ ...site, contact: { ...site.contact, phone: e.target.value } })} placeholder="919876543210" />
+        <input
+          className={styles.input}
+          value={site.contact.phone}
+          onChange={(e) => setSite({ ...site, contact: { ...site.contact, phone: e.target.value } })}
+          placeholder="919876543210"
+        />
         <label className={styles.label}>Email</label>
-        <input className={styles.input} value={site.contact.email} onChange={e => setSite({ ...site, contact: { ...site.contact, email: e.target.value } })} />
+        <input
+          className={styles.input}
+          value={site.contact.email}
+          onChange={(e) => setSite({ ...site, contact: { ...site.contact, email: e.target.value } })}
+        />
         <label className={styles.label}>Footer year (©)</label>
-        <input className={styles.input} type="number" value={site.siteYear} onChange={e => setSite({ ...site, siteYear: Number(e.target.value) || site.siteYear })} />
+        <input
+          className={styles.input}
+          type="number"
+          value={site.siteYear}
+          onChange={(e) => setSite({ ...site, siteYear: Number(e.target.value) || site.siteYear })}
+        />
       </div>
 
-      <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} style={{ minWidth: 180 }}>
+      <AdminButton type="submit" variant="primary" loading={saving} style={{ minWidth: 180 }}>
         Save site settings
-      </button>
+      </AdminButton>
     </form>
   )
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// SUB-COMPONENT: ServiceCard — collapsed card with inline expand-to-edit
-// ════════════════════════════════════════════════════════════════════════════
-function ServiceCard({
-  service, onUpdate, onSave, onDelete,
-}: {
-  service: ServiceDoc
-  onUpdate: (patch: Partial<ServiceDoc>) => void
-  onSave: () => void
-  onDelete: () => void
-}) {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div className={styles.serviceCardOuter} data-editing={open}>
-      {/* ── Collapsed row ── */}
-      <div className={styles.serviceCardRow} onClick={() => setOpen(o => !o)}>
-        <div
-          className={styles.serviceCardEmoji}
-          style={{ background: `${service.color}33`, border: `1px solid ${service.color}66` }}
-        >
-          {service.icon || '◇'}
-        </div>
-
-        <div className={styles.serviceCardInfo}>
-          <div className={styles.serviceCardTitle}>{service.title || 'Untitled service'}</div>
-          <div className={styles.serviceCardMeta}>
-            <span className={styles.serviceCardOrder}>Order #{service.order}</span>
-            {service.desc && (
-              <span className={styles.serviceCardDesc}>{service.desc}</span>
-            )}
-          </div>
-        </div>
-
-        <div
-          className={styles.serviceCardActions}
-          onClick={e => e.stopPropagation()}
-        >
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.btnDanger} ${styles.smallBtn}`}
-            onClick={onDelete}
-          >
-            Delete
-          </button>
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.smallBtn}`}
-            onClick={() => setOpen(o => !o)}
-            aria-label={open ? 'Collapse' : 'Edit'}
-          >
-            {open ? 'Close' : 'Edit'}
-          </button>
-        </div>
-
-        <span className={styles.serviceCardChevron} data-open={open}>▾</span>
-      </div>
-
-      {/* ── Expanded edit form ── */}
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            className={styles.serviceCardEdit}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div className={styles.serviceCardEditInner}>
-              <div className={styles.row3} style={{ marginBottom: '1rem' }}>
-                <div>
-                  <label className={styles.label}>Icon (emoji)</label>
-                  <input
-                    className={styles.input}
-                    value={service.icon}
-                    onChange={e => onUpdate({ icon: e.target.value })}
-                    style={{ marginBottom: 0 }}
-                  />
-                </div>
-                <div>
-                  <label className={styles.label}>Sort order</label>
-                  <input
-                    className={styles.input}
-                    type="number"
-                    value={service.order}
-                    onChange={e => onUpdate({ order: Number(e.target.value) })}
-                    style={{ marginBottom: 0 }}
-                  />
-                </div>
-                <div>
-                  <label className={styles.label}>Card colour</label>
-                  <div className={styles.colorRow}>
-                    <input
-                      type="color"
-                      value={service.color}
-                      onChange={e => onUpdate({ color: e.target.value })}
-                      className={styles.colorPicker}
-                    />
-                    <input
-                      className={styles.input}
-                      value={service.color}
-                      onChange={e => onUpdate({ color: e.target.value })}
-                      style={{ marginBottom: 0 }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <label className={styles.label}>Title</label>
-              <input
-                className={styles.input}
-                value={service.title}
-                onChange={e => onUpdate({ title: e.target.value })}
-              />
-
-              <label className={styles.label}>Description</label>
-              <textarea
-                className={styles.textarea}
-                value={service.desc}
-                rows={3}
-                onChange={e => onUpdate({ desc: e.target.value })}
-              />
-
-              <div className={styles.serviceEditActions}>
-                <span className={styles.spacer} />
-                <button
-                  type="button"
-                  className={`${styles.btn} ${styles.btnGhost} ${styles.smallBtn}`}
-                  onClick={() => setOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.btn} ${styles.btnPrimary} ${styles.smallBtn}`}
-                  onClick={() => { onSave(); setOpen(false) }}
-                >
-                  Save service
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// SUB-COMPONENT: AdminServices
-// ════════════════════════════════════════════════════════════════════════════
-function AdminServices({
-  services, setServices, onSave, onDelete, onCreate,
-}: {
-  services: ServiceDoc[]
-  setServices: (s: ServiceDoc[]) => void
-  onSave: (s: ServiceDoc) => void
-  onDelete: (id: string) => void
-  onCreate: () => void
-}) {
-  const update = (id: string, patch: Partial<ServiceDoc>) =>
-    setServices(services.map(s => s._id === id ? { ...s, ...patch } : s))
-
-  return (
-    <div>
-      <div className={styles.listHeader}>
-        <p className={styles.muted}>Service cards appear on the homepage carousel. Click a card to edit it.</p>
-        <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={onCreate}>
-          + Add service
-        </button>
-      </div>
-
-      {services.length === 0 && (
-        <div className={styles.emptyState}>
-          <span className={styles.emptyIcon}>◇</span>
-          <p>No services yet. Add your first one above.</p>
-        </div>
-      )}
-
-      {services.map(s => (
-        <ServiceCard
-          key={s._id}
-          service={s}
-          onUpdate={patch => update(s._id, patch)}
-          onSave={() => onSave(s)}
-          onDelete={() => onDelete(s._id)}
-        />
-      ))}
-    </div>
-  )
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// SUB-COMPONENT: WorkCard — collapsed card with inline expand-to-edit
-// ════════════════════════════════════════════════════════════════════════════
-function WorkCard({
-  work, services, onUpdate, onSave, onDelete, onAddPhotos, onRemovePhoto,
-}: {
-  work: WorkDoc
-  services: ServiceDoc[]
-  onUpdate: (patch: Partial<WorkDoc>) => void
-  onSave: () => void
-  onDelete: () => void
-  onAddPhotos: (files: FileList | null) => void
-  onRemovePhoto: (idx: number) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
-
-  const toggleFeatured = (checked: boolean) => onUpdate({ featured: checked })
-
-  // Thumb strip: show up to 2 photos + overflow count
-  const thumbs  = work.photos.slice(0, 2)
-  const overflow = work.photos.length - 2
-
-  return (
-    <div className={styles.workCardOuter} data-editing={open}>
-      {/* ── Collapsed row ── */}
-      <div className={styles.workCardRow} onClick={() => setOpen(o => !o)}>
-        {/* Image thumbnails */}
-        <div className={styles.workCardThumbStrip}>
-          {thumbs.length > 0
-            ? thumbs.map((p, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={i} src={p.url} alt="" className={styles.workCardThumb} />
-              ))
-            : <div className={styles.workCardThumbEmpty}>◎</div>
-          }
-          {overflow > 0 && (
-            <div className={styles.workCardThumbMore}>+{overflow}</div>
-          )}
-        </div>
-
-        <div className={styles.workCardInfo}>
-          <div className={styles.workCardTitle}>{work.title || 'Untitled work'}</div>
-          <div className={styles.workCardMeta}>
-            <span className={styles.workCardOrder}>Order #{work.order}</span>
-            {work.featured && <span className={styles.workFeaturedBadge}>★ Featured</span>}
-            {work.story && (
-              <span className={styles.workCardDesc}>{work.story}</span>
-            )}
-          </div>
-        </div>
-
-        <div
-          className={styles.workCardActions}
-          onClick={e => e.stopPropagation()}
-        >
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.btnDanger} ${styles.smallBtn}`}
-            onClick={onDelete}
-          >
-            Delete
-          </button>
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.smallBtn}`}
-            onClick={() => setOpen(o => !o)}
-          >
-            {open ? 'Close' : 'Edit'}
-          </button>
-        </div>
-
-        <span className={styles.workCardChevron} data-open={open}>▾</span>
-      </div>
-
-      {/* ── Expanded edit form ── */}
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            className={styles.workCardEdit}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div className={styles.workCardEditInner}>
-              {/* Service selector */}
-              <label className={styles.label}>
-                Link to service <span className={styles.required}>*</span>
-              </label>
-              <select
-                className={styles.select}
-                value={work.serviceId ?? ''}
-                onChange={e => onUpdate({ serviceId: e.target.value || undefined })}
-              >
-                <option value="">— Select a service —</option>
-                {services.map(s => (
-                  <option key={s._id} value={s._id}>{s.icon} {s.title}</option>
-                ))}
-              </select>
-
-              <label className={styles.label}>Title</label>
-              <input
-                className={styles.input}
-                value={work.title}
-                onChange={e => onUpdate({ title: e.target.value })}
-              />
-
-              <div className={styles.row2}>
-                <div>
-                  <label className={styles.label}>Date</label>
-                  <input
-                    className={styles.input}
-                    value={work.date}
-                    onChange={e => onUpdate({ date: e.target.value })}
-                    placeholder="e.g. March 2024"
-                  />
-                </div>
-                <div>
-                  <label className={styles.label}>Venue</label>
-                  <input
-                    className={styles.input}
-                    value={work.venue}
-                    onChange={e => onUpdate({ venue: e.target.value })}
-                    placeholder="e.g. Grand Hyatt, Kochi"
-                  />
-                </div>
-              </div>
-
-              <label className={styles.label}>Story / Description</label>
-              <textarea
-                className={styles.textarea}
-                value={work.story}
-                rows={3}
-                onChange={e => onUpdate({ story: e.target.value })}
-                placeholder="What made this event special..."
-              />
-
-              <div className={styles.row2}>
-                <div>
-                  <label className={styles.label}>Sort order</label>
-                  <input
-                    className={styles.input}
-                    type="number"
-                    value={work.order}
-                    onChange={e => onUpdate({ order: Number(e.target.value) })}
-                    style={{ marginBottom: 0 }}
-                  />
-                </div>
-                <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '0.1rem' }}>
-                  <label className={styles.chk}>
-                    <input
-                      type="checkbox"
-                      checked={work.featured}
-                      onChange={e => toggleFeatured(e.target.checked)}
-                    />
-                    <span>Mark as featured</span>
-                    <span className={styles.chkHint}>(drives hero card)</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Photos */}
-              <label className={styles.label} style={{ marginTop: '1rem' }}>
-                Photos <span className={styles.chkHint}>(first 3 shown on work card)</span>
-              </label>
-              <input
-                ref={fileRef}
-                type="file" accept="image/*" multiple
-                className={styles.fileInput}
-                onChange={e => onAddPhotos(e.target.files)}
-              />
-              {work.photos.length > 0 && (
-                <div className={styles.photoGrid}>
-                  {work.photos.map((p, i) => (
-                    <div key={`${p.url}-${i}`} className={styles.photoCard}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={p.url} alt={`Photo ${i + 1}`} className={styles.photoThumb} />
-                      <button
-                        type="button"
-                        className={styles.photoRemove}
-                        onClick={() => onRemovePhoto(i)}
-                        aria-label="Remove photo"
-                      >×</button>
-                      {i < 3 && <span className={styles.photoLabel}>On card</span>}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className={styles.workEditActions}>
-                <span className={styles.spacer} />
-                <button
-                  type="button"
-                  className={`${styles.btn} ${styles.btnGhost} ${styles.smallBtn}`}
-                  onClick={() => setOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.btn} ${styles.btnPrimary} ${styles.smallBtn}`}
-                  onClick={() => { onSave(); setOpen(false) }}
-                >
-                  Save portfolio item
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// SUB-COMPONENT: AdminWorks
-// ════════════════════════════════════════════════════════════════════════════
-function AdminWorks({
-  works, services, setWorks, onSave, onDelete, onCreate, onAddPhotos, onRemovePhoto,
-}: {
-  works: WorkDoc[]
-  services: ServiceDoc[]
-  setWorks: (w: WorkDoc[]) => void
-  onSave: (w: WorkDoc) => void
-  onDelete: (id: string) => void
-  onCreate: () => void
-  onAddPhotos: (workId: string, files: FileList | null) => void
-  onRemovePhoto: (workId: string, idx: number) => void
-}) {
-  const update = (id: string, patch: Partial<WorkDoc>) =>
-    setWorks(works.map(w => w._id === id ? { ...w, ...patch } : w))
-
-  return (
-    <div>
-      <div className={styles.listHeader}>
-        <p className={styles.muted}>Each portfolio item links to a service. Click a card to edit it.</p>
-        <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={onCreate}>
-          + Add work
-        </button>
-      </div>
-
-      {works.length === 0 && (
-        <div className={styles.emptyState}>
-          <span className={styles.emptyIcon}>◎</span>
-          <p>No portfolio items yet. Add your first one above.</p>
-        </div>
-      )}
-
-      {works.map(w => (
-        <WorkCard
-          key={w._id}
-          work={w}
-          services={services}
-          onUpdate={patch => update(w._id, patch)}
-          onSave={() => onSave(w)}
-          onDelete={() => onDelete(w._id)}
-          onAddPhotos={files => onAddPhotos(w._id, files)}
-          onRemovePhoto={idx => onRemovePhoto(w._id, idx)}
-        />
-      ))}
-    </div>
-  )
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// MAIN: AdminPage
-// ════════════════════════════════════════════════════════════════════════════
 export default function AdminPage() {
-  const [tab, setTab]               = useState<Tab>('site')
+  const [tab, setTab] = useState<Tab>('site')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [sessionOk, setSessionOk]   = useState<boolean | null>(null)
-  const [password, setPassword]     = useState('')
+  const [sessionOk, setSessionOk] = useState<boolean | null>(null)
+  const [dataLoading, setDataLoading] = useState(true)
+  const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
-  const [toast, setToast]           = useState<Toast>(null)
 
-  const [site, setSite]         = useState<SiteDoc | null>(null)
+  const [site, setSite] = useState<SiteDoc | null>(null)
   const [services, setServices] = useState<ServiceDoc[]>([])
-  const [works, setWorks]       = useState<WorkDoc[]>([])
+  const [works, setWorks] = useState<WorkDoc[]>([])
 
-  const showToast = (text: string, type: 'ok' | 'err' = 'ok') => {
-    setToast({ text, type })
-    setTimeout(() => setToast(null), 4000)
-  }
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [siteSaving, setSiteSaving] = useState(false)
 
-  // ── Data fetching ─────────────────────────────────────────────────────
-  const refresh = useCallback(async () => {
+  const [creatingService, setCreatingService] = useState(false)
+  const [serviceDraft, setServiceDraft] = useState<ServiceDraft>(emptyServiceDraft())
+  const [showServiceValidation, setShowServiceValidation] = useState(false)
+  const [serviceCreateLoading, setServiceCreateLoading] = useState(false)
+  const [highlightServiceId, setHighlightServiceId] = useState<string | null>(null)
+  const serviceRefs = useRef<Record<string, HTMLLIElement | null>>({})
+
+  const [addingWork, setAddingWork] = useState(false)
+  const [workDraft, setWorkDraft] = useState<WorkAddDraft>(emptyWorkAddDraft())
+  const [showWorkValidation, setShowWorkValidation] = useState(false)
+  const [workCreateLoading, setWorkCreateLoading] = useState(false)
+  const [workUploading, setWorkUploading] = useState(false)
+  const [isServiceDragging, setIsServiceDragging] = useState(false)
+
+  const refresh = useCallback(async (silent = false) => {
+    if (!silent) setDataLoading(true)
     const res = await fetch('/api/admin/bootstrap', { credentials: 'include' })
-    if (res.status === 401) { setSessionOk(false); return }
-    if (!res.ok) { showToast('Could not load data — check MONGODB_URI.', 'err'); return }
+    if (res.status === 401) {
+      setSessionOk(false)
+      setDataLoading(false)
+      return
+    }
+    if (!res.ok) {
+      toast.error('Could not load data — check MONGODB_URI.')
+      setDataLoading(false)
+      return
+    }
     const data = await res.json()
     setSite(data.site)
     setServices(data.services || [])
     setWorks(data.works || [])
     setSessionOk(true)
+    setDataLoading(false)
   }, [])
 
   useEffect(() => {
     ;(async () => {
       const r = await fetch('/api/auth/session', { credentials: 'include' })
       const j = await r.json()
-      if (j.ok) { setSessionOk(true); await refresh() }
-      else setSessionOk(false)
+      if (j.ok) {
+        setSessionOk(true)
+        await refresh()
+      } else {
+        setSessionOk(false)
+        setDataLoading(false)
+      }
     })()
   }, [refresh])
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 901px)')
-    const onChange = () => { if (mq.matches) setSidebarOpen(false) }
+    const onChange = () => {
+      if (mq.matches) setSidebarOpen(false)
+    }
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
   }, [])
 
-  // ── Auth ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!highlightServiceId) return
+    const el = serviceRefs.current[highlightServiceId]
+    if (el) {
+      requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+    }
+    const t = setTimeout(() => setHighlightServiceId(null), 4000)
+    return () => clearTimeout(t)
+  }, [highlightServiceId, services])
+
   const login = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoginError('')
@@ -703,7 +292,10 @@ export default function AdminPage() {
       body: JSON.stringify({ password }),
       credentials: 'include',
     })
-    if (!res.ok) { setLoginError('Invalid password — please try again.'); return }
+    if (!res.ok) {
+      setLoginError('Invalid password — please try again.')
+      return
+    }
     setPassword('')
     setSessionOk(true)
     await refresh()
@@ -712,126 +304,226 @@ export default function AdminPage() {
   const logout = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     setSessionOk(false)
-    setSite(null); setServices([]); setWorks([])
+    setSite(null)
+    setServices([])
+    setWorks([])
   }
 
-  // ── Site handlers ─────────────────────────────────────────────────────
   const saveSite = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!site) return
-    const res = await fetch('/api/admin/site', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        heroCoverUrl: site.heroCoverUrl,
-        heroCoverPublicId: site.heroCoverPublicId ?? null,
-        heroStats: site.heroStats,
-        aboutStats: site.aboutStats,
-        contact: site.contact,
-        siteYear: site.siteYear,
-      }),
-    })
-    const data = await res.json().catch(() => ({}))
-    if (!res.ok) { showToast(data.error || 'Save failed', 'err'); return }
-    setSite(data.site)
-    showToast('Site settings saved ✓')
+    setSiteSaving(true)
+    const toastId = toast.loading('Saving…')
+    try {
+      const res = await fetch('/api/admin/site', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          heroCoverUrl: site.heroCoverUrl,
+          heroCoverPublicId: site.heroCoverPublicId ?? null,
+          heroStats: site.heroStats,
+          aboutStats: site.aboutStats,
+          contact: site.contact,
+          siteYear: site.siteYear,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Save failed')
+      setSite(data.site)
+      toast.success('Saved successfully', { id: toastId })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Save failed', { id: toastId })
+    } finally {
+      setSiteSaving(false)
+    }
   }
 
   const onHeroFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
     if (!f || !site) return
+    const toastId = toast.loading('Uploading…')
     try {
       const { url, publicId } = await uploadFile(f, 'lim-events/hero')
       setSite({ ...site, heroCoverUrl: url, heroCoverPublicId: publicId })
-      showToast('Cover uploaded — click Save to publish.')
+      toast.success('Cover uploaded — click Save to publish.', { id: toastId })
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Upload failed', 'err')
+      toast.error(err instanceof Error ? err.message : 'Upload failed', { id: toastId })
     }
     e.target.value = ''
   }
 
-  // ── Service handlers ──────────────────────────────────────────────────
-  const saveService = async (s: ServiceDoc) => {
-    const res = await fetch(`/api/admin/services/${s._id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ icon: s.icon, title: s.title, desc: s.desc, color: s.color, order: s.order }),
-    })
-    if (!res.ok) { showToast('Could not save service', 'err'); return }
-    showToast('Service saved ✓')
-    await refresh()
-  }
-
-  const deleteService = async (id: string) => {
-    if (!confirm('Delete this service? Works linked to it will become unlinked.')) return
-    await fetch(`/api/admin/services/${id}`, { method: 'DELETE', credentials: 'include' })
-    await refresh()
-  }
-
-  const createService = async () => {
-    const res = await fetch('/api/admin/services', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ icon: '✦', title: 'New service', desc: 'Description', color: '#fde8d8' }),
-    })
-    if (res.ok) await refresh()
-  }
-
-  // ── Work handlers ─────────────────────────────────────────────────────
-  const saveWork = async (w: WorkDoc) => {
-    const res = await fetch(`/api/admin/works/${w._id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        title: w.title, date: w.date, venue: w.venue, story: w.story,
-        photos: w.photos, featured: w.featured, order: w.order,
-        serviceId: w.serviceId ?? null,
-      }),
-    })
-    if (!res.ok) { showToast('Could not save portfolio item', 'err'); return }
-    showToast('Portfolio item saved ✓')
-    await refresh()
-  }
-
-  const deleteWork = async (id: string) => {
-    if (!confirm('Delete this portfolio item and its photos?')) return
-    await fetch(`/api/admin/works/${id}`, { method: 'DELETE', credentials: 'include' })
-    await refresh()
-  }
-
-  const createWork = async () => {
-    const res = await fetch('/api/admin/works', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ title: 'New event', date: 'TBC', venue: 'TBC', story: '', photos: [], featured: false, serviceId: null }),
-    })
-    if (res.ok) await refresh()
-  }
-
-  const addWorkPhotos = async (workId: string, files: FileList | null) => {
-    if (!files?.length) return
-    const w = works.find(x => x._id === workId)
-    if (!w) return
-    const nextPhotos = [...w.photos]
-    for (let i = 0; i < files.length; i++) {
-      try {
-        const up = await uploadFile(files[i], 'lim-events/work')
-        nextPhotos.push({ url: up.url, publicId: up.publicId })
-      } catch { showToast('One or more uploads failed', 'err') }
+  const reorderServices = async (reordered: ServiceDoc[]) => {
+    const previous = services
+    setServices(reordered)
+    try {
+      const res = await fetch('/api/admin/services/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ ids: reordered.map((s) => s._id) }),
+      })
+      if (!res.ok) throw new Error('Reorder failed')
+      toast.success('Service order updated')
+    } catch {
+      setServices(previous)
+      toast.error('Could not update order')
     }
-    setWorks(works.map(x => x._id === workId ? { ...x, photos: nextPhotos } : x))
-    showToast('Photos added — click Save to publish.')
   }
 
-  const removeWorkPhoto = (workId: string, photoIdx: number) =>
-    setWorks(works.map(w => w._id === workId ? { ...w, photos: w.photos.filter((_, i) => i !== photoIdx) } : w))
+  const saveService = async (s: ServiceDoc) => {
+    const toastId = toast.loading('Saving…')
+    try {
+      const res = await fetch(`/api/admin/services/${s._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ icon: s.icon, title: s.title, desc: s.desc, color: s.color, order: s.order }),
+      })
+      if (!res.ok) throw new Error('Could not save service')
+      setServices((prev) => prev.map((x) => (x._id === s._id ? s : x)))
+      toast.success('Saved successfully', { id: toastId })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Save failed', { id: toastId })
+    }
+  }
 
-  // ── Loading ───────────────────────────────────────────────────────────
+  const submitCreateService = async () => {
+    if (!isServiceDraftValid(serviceDraft)) {
+      setShowServiceValidation(true)
+      return
+    }
+    setServiceCreateLoading(true)
+    const toastId = toast.loading('Saving…')
+    try {
+      const res = await fetch('/api/admin/services', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          icon: serviceDraft.icon || '✦',
+          title: serviceDraft.title.trim(),
+          desc: serviceDraft.desc.trim(),
+          color: '#fde8d8',
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Could not create service')
+      const created = data.service as ServiceDoc
+      setServices((prev) => [...prev, { ...created, _id: String(created._id) }])
+      setCreatingService(false)
+      setServiceDraft(emptyServiceDraft())
+      setShowServiceValidation(false)
+      setHighlightServiceId(String(created._id))
+      toast.success('Service added successfully', { id: toastId })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Save failed', { id: toastId })
+    } finally {
+      setServiceCreateLoading(false)
+    }
+  }
+
+  const saveWork = async (w: WorkDoc) => {
+    const toastId = toast.loading('Saving…')
+    try {
+      const res = await fetch(`/api/admin/works/${w._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          story: w.story,
+          photos: w.photos,
+          serviceId: w.serviceId,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Could not save portfolio item')
+      const updated = data.work as WorkDoc
+      setWorks((prev) => prev.map((x) => (x._id === w._id ? updated : x)))
+      toast.success('Saved successfully', { id: toastId })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Save failed', { id: toastId })
+      throw err
+    }
+  }
+
+  const submitCreateWork = async () => {
+    if (!isWorkDraftValid(workDraft)) {
+      setShowWorkValidation(true)
+      return
+    }
+    setWorkCreateLoading(true)
+    const toastId = toast.loading('Saving…')
+    try {
+      const res = await fetch('/api/admin/works', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          serviceId: workDraft.serviceId,
+          story: workDraft.story.trim(),
+          photos: workDraft.photos,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Could not save portfolio item')
+      const created = data.work as WorkDoc
+      setWorks((prev) => [created, ...prev])
+      setAddingWork(false)
+      setWorkDraft(emptyWorkAddDraft())
+      setShowWorkValidation(false)
+      toast.success('Portfolio added successfully', { id: toastId })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Save failed', { id: toastId })
+    } finally {
+      setWorkCreateLoading(false)
+    }
+  }
+
+  const uploadWorkPhotoForId = async (workId: string, file: File) => {
+    const up = await uploadFile(file, 'lim-events/work')
+    setWorks((prev) =>
+      prev.map((w) => {
+        if (w._id !== workId) return w
+        if (w.photos.length >= 3) return w
+        return { ...w, photos: [...w.photos, up] }
+      })
+    )
+    return up
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+    setDeleteLoading(true)
+    const toastId = toast.loading('Deleting…')
+    try {
+      if (deleteTarget.type === 'service') {
+        const res = await fetch(`/api/admin/services/${deleteTarget.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        })
+        if (!res.ok) throw new Error('Delete failed')
+        setServices((prev) => prev.filter((s) => s._id !== deleteTarget.id))
+        setWorks((prev) =>
+          prev.map((w) => (w.serviceId === deleteTarget.id ? { ...w, serviceId: '' } : w))
+        )
+      } else {
+        const res = await fetch(`/api/admin/works/${deleteTarget.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        })
+        if (!res.ok) throw new Error('Delete failed')
+        setWorks((prev) => prev.filter((w) => w._id !== deleteTarget.id))
+      }
+      toast.success('Deleted successfully', { id: toastId })
+      setDeleteTarget(null)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Delete failed', { id: toastId })
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
   if (sessionOk === null) {
     return (
       <div className={styles.loadingPage}>
@@ -841,63 +533,80 @@ export default function AdminPage() {
     )
   }
 
-  // ── Login ─────────────────────────────────────────────────────────────
   if (!sessionOk) {
     return (
-      <div className={styles.loginPage}>
-        <motion.div
-          className={styles.loginCard}
-          initial={{ opacity: 0, y: 24, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <div className={styles.loginBrand}>
-            <div className={styles.loginBrandMark}>✦</div>
-            <div className={styles.loginBrandText}>
-              <strong>Lim Events</strong>
-              <span>Content Studio</span>
+      <>
+        <ToastProvider />
+        <div className={styles.loginPage}>
+          <motion.div
+            className={styles.loginCard}
+            initial={{ opacity: 0, y: 24, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className={styles.loginBrand}>
+              <div className={styles.loginBrandMark}>✦</div>
+              <div className={styles.loginBrandText}>
+                <strong>Lim Events</strong>
+                <span>Content Studio</span>
+              </div>
             </div>
-          </div>
-          <p className={styles.muted} style={{ marginBottom: '1.65rem', lineHeight: 1.7 }}>
-            Sign in with your admin password. Changes sync to the live site instantly.
-          </p>
-          <form onSubmit={login}>
-            <label className={styles.label}>Admin password</label>
-            <input
-              className={styles.input} type="password"
-              value={password} onChange={e => setPassword(e.target.value)}
-              autoComplete="current-password" placeholder="Enter password"
-            />
-            {loginError && <p className={styles.error}>{loginError}</p>}
-            <button
-              type="submit"
-              className={`${styles.btn} ${styles.btnPrimary}`}
-              style={{ marginTop: '0.6rem', width: '100%', padding: '0.72rem' }}
-            >
-              Sign in →
-            </button>
-          </form>
-        </motion.div>
-      </div>
+            <p className={styles.muted} style={{ marginBottom: '1.65rem', lineHeight: 1.7 }}>
+              Sign in with your admin password. Changes sync to the live site instantly.
+            </p>
+            <form onSubmit={login}>
+              <label className={styles.label} htmlFor="admin-password">
+                Admin password
+              </label>
+              <input
+                id="admin-password"
+                className={styles.input}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                placeholder="Enter password"
+              />
+              {loginError && (
+                <p className={styles.error} role="alert">
+                  {loginError}
+                </p>
+              )}
+              <AdminButton type="submit" variant="primary" style={{ marginTop: '0.6rem', width: '100%' }}>
+                Sign in →
+              </AdminButton>
+            </form>
+          </motion.div>
+        </div>
+      </>
     )
   }
 
-  const activeNav = NAV_ITEMS.find(n => n.id === tab) ?? NAV_ITEMS[0]
+  const activeNav = NAV_ITEMS.find((n) => n.id === tab) ?? NAV_ITEMS[0]
+  const deleteDescription =
+    deleteTarget?.type === 'service'
+      ? 'Works linked to this service will become unlinked. This action cannot be undone.'
+      : 'This action cannot be undone.'
 
-  // ── Dashboard ─────────────────────────────────────────────────────────
   return (
     <div className={styles.shell}>
-      {/* Mobile overlay */}
+      <ToastProvider />
+      <ConfirmModal
+        open={Boolean(deleteTarget)}
+        description={deleteDescription}
+        loading={deleteLoading}
+        onCancel={() => !deleteLoading && setDeleteTarget(null)}
+        onConfirm={() => void confirmDelete()}
+      />
+
       <div
         className={`${styles.overlay} ${sidebarOpen ? styles.overlayVisible : ''}`}
         aria-hidden={!sidebarOpen}
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* Sidebar */}
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
         <div className={styles.sidebarGlow} aria-hidden />
-
         <div className={styles.sidebarHeader}>
           <div className={styles.sidebarLogo}>L</div>
           <div>
@@ -908,12 +617,18 @@ export default function AdminPage() {
 
         <div className={styles.navSectionLabel}>Manage</div>
         <nav className={styles.navList} aria-label="Admin sections">
-          {NAV_ITEMS.map(item => (
+          {NAV_ITEMS.map((item) => (
             <button
-              key={item.id} type="button"
+              key={item.id}
+              type="button"
               className={styles.navItem}
               data-active={tab === item.id}
-              onClick={() => { setTab(item.id); setSidebarOpen(false) }}
+              onClick={() => {
+                if (isServiceDragging) return
+                setTab(item.id)
+                setSidebarOpen(false)
+              }}
+              aria-disabled={isServiceDragging && tab !== item.id}
             >
               {tab === item.id && (
                 <motion.span
@@ -928,7 +643,7 @@ export default function AdminPage() {
                 <span className={styles.navDesc}>{item.desc}</span>
               </span>
               {item.id === 'services' && <span className={styles.navCount}>{services.length}</span>}
-              {item.id === 'works'    && <span className={styles.navCount}>{works.length}</span>}
+              {item.id === 'works' && <span className={styles.navCount}>{works.length}</span>}
             </button>
           ))}
         </nav>
@@ -943,19 +658,21 @@ export default function AdminPage() {
         </div>
       </aside>
 
-      {/* Main */}
       <div className={styles.main}>
         <header className={styles.header}>
           <div className={styles.headerLeft}>
             <button
-              type="button" className={styles.menuBtn}
+              type="button"
+              className={styles.menuBtn}
               aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
-              onClick={() => setSidebarOpen(o => !o)}
+              onClick={() => setSidebarOpen((o) => !o)}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                {sidebarOpen
-                  ? <path d="M18 6L6 18M6 6l12 12" />
-                  : <path d="M4 6h16M4 12h16M4 18h16" />}
+                {sidebarOpen ? (
+                  <path d="M18 6L6 18M6 6l12 12" />
+                ) : (
+                  <path d="M4 6h16M4 12h16M4 18h16" />
+                )}
               </svg>
             </button>
             <div>
@@ -973,24 +690,6 @@ export default function AdminPage() {
 
         <div className={styles.content}>
           <div className={styles.contentInner}>
-            {/* Toast */}
-            <AnimatePresence>
-              {toast && (
-                <motion.div
-                  key="toast"
-                  className={`${styles.toast} ${toast.type === 'err' ? styles.toastErr : ''}`}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, height: 0, marginBottom: 0, padding: 0 }}
-                  transition={{ duration: 0.26 }}
-                >
-                  <span>{toast.type === 'ok' ? '✓' : '⚠'}</span>
-                  {toast.text}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Tab panels */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={tab}
@@ -1000,20 +699,195 @@ export default function AdminPage() {
                 transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               >
                 {tab === 'site' && site && (
-                  <AdminSite site={site} setSite={setSite} onSave={saveSite} onHeroFile={onHeroFile} />
+                  <AdminSite site={site} setSite={setSite} onSave={saveSite} onHeroFile={onHeroFile} saving={siteSaving} />
                 )}
+
                 {tab === 'services' && (
-                  <AdminServices
-                    services={services} setServices={setServices}
-                    onSave={saveService} onDelete={deleteService} onCreate={createService}
-                  />
+                  <div>
+                    <div className={styles.listHeader}>
+                      <p className={styles.muted}>
+                        Service cards appear on the homepage carousel. Drag{' '}
+                        <span className={styles.inlineDragHint}>⠿</span> to reorder — order saves automatically.
+                      </p>
+                      {!creatingService && (
+                        <AdminButton
+                          type="button"
+                          variant="primary"
+                          onClick={() => {
+                            setCreatingService(true)
+                            setServiceDraft(emptyServiceDraft())
+                            setShowServiceValidation(false)
+                          }}
+                        >
+                          + Add service
+                        </AdminButton>
+                      )}
+                    </div>
+
+                    <AnimatePresence>
+                      {creatingService && (
+                        <ServiceCreatePanel
+                          draft={serviceDraft}
+                          onChange={(patch) => setServiceDraft((d) => ({ ...d, ...patch }))}
+                          onCancel={() => {
+                            setCreatingService(false)
+                            setShowServiceValidation(false)
+                          }}
+                          onCreate={() => void submitCreateService()}
+                          saving={serviceCreateLoading}
+                          showValidation={showServiceValidation}
+                        />
+                      )}
+                    </AnimatePresence>
+
+                    {dataLoading ? (
+                      <AdminListSkeleton count={3} />
+                    ) : services.length === 0 && !creatingService ? (
+                      <EmptyState
+                        icon="◇"
+                        title="No services yet"
+                        description="Add your first service to show on the homepage carousel."
+                        action={
+                          <AdminButton
+                            type="button"
+                            variant="primary"
+                            onClick={() => {
+                              setCreatingService(true)
+                              setServiceDraft(emptyServiceDraft())
+                            }}
+                          >
+                            + Add service
+                          </AdminButton>
+                        }
+                      />
+                    ) : (
+                      <SortableServiceList
+                        services={services}
+                        highlightId={highlightServiceId}
+                        onDragStateChange={setIsServiceDragging}
+                        setItemRef={(id, el) => {
+                          serviceRefs.current[id] = el
+                        }}
+                        onReorder={(reordered) => void reorderServices(reordered)}
+                        onUpdate={(id, patch) =>
+                          setServices((prev) => prev.map((x) => (x._id === id ? { ...x, ...patch } : x)))
+                        }
+                        onSave={saveService}
+                        onDelete={(id) => {
+                          const s = services.find((x) => x._id === id)
+                          setDeleteTarget({
+                            type: 'service',
+                            id,
+                            label: s?.title || 'this service',
+                          })
+                        }}
+                      />
+                    )}
+                  </div>
                 )}
+
                 {tab === 'works' && (
-                  <AdminWorks
-                    works={works} services={services} setWorks={setWorks}
-                    onSave={saveWork} onDelete={deleteWork} onCreate={createWork}
-                    onAddPhotos={addWorkPhotos} onRemovePhoto={removeWorkPhoto}
-                  />
+                  <div>
+                    <div className={styles.listHeader}>
+                      <p className={styles.muted}>
+                        Each portfolio item links to a service. Required: service, description, and 1–3 photos.
+                      </p>
+                      {!addingWork && (
+                        <AdminButton
+                          type="button"
+                          variant="primary"
+                          onClick={() => {
+                            setAddingWork(true)
+                            setWorkDraft(emptyWorkAddDraft())
+                            setShowWorkValidation(false)
+                          }}
+                          disabled={services.length === 0}
+                        >
+                          + Add work
+                        </AdminButton>
+                      )}
+                    </div>
+
+                    {services.length === 0 && (
+                      <p className={styles.fieldHint} style={{ marginBottom: '1rem' }}>
+                        Create at least one service before adding portfolio work.
+                      </p>
+                    )}
+
+                    <AnimatePresence>
+                      {addingWork && (
+                        <WorkAddPanel
+                          draft={workDraft}
+                          services={services}
+                          onChange={(patch) => setWorkDraft((d) => ({ ...d, ...patch }))}
+                          onCancel={() => {
+                            setAddingWork(false)
+                            setShowWorkValidation(false)
+                          }}
+                          onSave={() => void submitCreateWork()}
+                          onUploadPhoto={async (file) => {
+                            setWorkUploading(true)
+                            try {
+                              const up = await uploadFile(file, 'lim-events/work')
+                              setWorkDraft((d) => ({
+                                ...d,
+                                photos: [...d.photos, up].slice(0, 3),
+                              }))
+                              return up
+                            } finally {
+                              setWorkUploading(false)
+                            }
+                          }}
+                          saving={workCreateLoading}
+                          uploading={workUploading}
+                          showValidation={showWorkValidation}
+                        />
+                      )}
+                    </AnimatePresence>
+
+                    {dataLoading ? (
+                      <AdminListSkeleton count={3} />
+                    ) : works.length === 0 && !addingWork ? (
+                      <EmptyState
+                        icon="◎"
+                        title="No portfolio items yet"
+                        description="Showcase past events with photos and a short story."
+                        action={
+                          <AdminButton
+                            type="button"
+                            variant="primary"
+                            disabled={services.length === 0}
+                            onClick={() => {
+                              setAddingWork(true)
+                              setWorkDraft(emptyWorkAddDraft())
+                            }}
+                          >
+                            + Add work
+                          </AdminButton>
+                        }
+                      />
+                    ) : (
+                      works.map((w) => (
+                        <WorkCard
+                          key={w._id}
+                          work={w}
+                          services={services}
+                          onUpdate={(patch) =>
+                            setWorks((prev) => prev.map((x) => (x._id === w._id ? { ...x, ...patch } : x)))
+                          }
+                          onSave={() => saveWork(w)}
+                          onDelete={() =>
+                            setDeleteTarget({
+                              type: 'work',
+                              id: w._id,
+                              label: w.title || 'this portfolio item',
+                            })
+                          }
+                          onUploadPhoto={(file) => uploadWorkPhotoForId(w._id, file)}
+                        />
+                      ))
+                    )}
+                  </div>
                 )}
               </motion.div>
             </AnimatePresence>

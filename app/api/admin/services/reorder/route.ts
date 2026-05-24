@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
 import { requireAdmin } from '@/lib/auth'
-import { SiteSettings } from '@/lib/models/SiteSettings'
+import { connectDB } from '@/lib/mongodb'
 import { Service } from '@/lib/models/Service'
-import { Work } from '@/lib/models/Work'
 import { ensureDatabaseSeed } from '@/lib/seed'
-import { toWorkClient } from '@/lib/work-mapper'
+import mongoose from 'mongoose'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function PUT(req: Request) {
   const unauthorized = await requireAdmin()
   if (unauthorized) return unauthorized
 
@@ -20,13 +18,27 @@ export async function GET() {
   await connectDB()
   await ensureDatabaseSeed()
 
-  const site = await SiteSettings.findById('site').lean()
+  const body = await req.json()
+  const ids = body.ids
+
+  if (!Array.isArray(ids) || !ids.every((id) => typeof id === 'string' && mongoose.isValidObjectId(id))) {
+    return NextResponse.json({ error: 'Invalid order payload' }, { status: 400 })
+  }
+
+  const ops = ids.map((id: string, index: number) => ({
+    updateOne: {
+      filter: { _id: new mongoose.Types.ObjectId(id) },
+      update: { $set: { order: index } },
+    },
+  }))
+
+  if (ops.length > 0) {
+    await Service.bulkWrite(ops)
+  }
+
   const services = await Service.find().sort({ order: 1 }).lean()
-  const works = await Work.find().sort({ order: 1, createdAt: -1 }).lean()
 
   return NextResponse.json({
-    site,
     services: services.map((s) => ({ ...s, _id: String(s._id) })),
-    works: works.map((w) => toWorkClient(w)),
   })
 }

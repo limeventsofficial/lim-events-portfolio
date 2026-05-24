@@ -4,14 +4,10 @@ import { connectDB } from '@/lib/mongodb'
 import { Work } from '@/lib/models/Work'
 import { ensureDatabaseSeed } from '@/lib/seed'
 import { normalizeWorkTitle, normalizeWorkLine } from '@/lib/work-fields'
+import { parseServiceId, toWorkClient, validateWorkPayload } from '@/lib/work-mapper'
+import mongoose from 'mongoose'
 
 export const dynamic = 'force-dynamic'
-
-type PhotoIn = { url: string; publicId?: string }
-
-function isPhoto(x: unknown): x is PhotoIn {
-  return typeof x === 'object' && x !== null && typeof (x as PhotoIn).url === 'string'
-}
 
 export async function POST(req: Request) {
   const unauthorized = await requireAdmin()
@@ -25,13 +21,17 @@ export async function POST(req: Request) {
   await ensureDatabaseSeed()
 
   const body = await req.json()
+  const validation = validateWorkPayload(body)
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 })
+  }
+
+  const serviceId = parseServiceId(body.serviceId)!
   const { story, featured, order, photos } = body
 
   const title = normalizeWorkTitle(body.title)
   const date = normalizeWorkLine(body.date)
   const venue = normalizeWorkLine(body.venue)
-
-  const photoList: PhotoIn[] = Array.isArray(photos) && photos.every(isPhoto) ? photos : []
 
   const maxOrder = await Work.findOne().sort({ order: -1 }).select('order').lean()
   const nextOrder = typeof order === 'number' ? order : (maxOrder?.order ?? -1) + 1
@@ -44,11 +44,12 @@ export async function POST(req: Request) {
     title,
     date,
     venue,
-    story: typeof story === 'string' ? story : '',
-    photos: photoList,
+    serviceCat: new mongoose.Types.ObjectId(serviceId),
+    story: story.trim(),
+    photos,
     featured: Boolean(featured),
     order: nextOrder,
   })
 
-  return NextResponse.json({ work: doc.toObject() })
+  return NextResponse.json({ work: toWorkClient(doc.toObject()) })
 }

@@ -38,6 +38,7 @@ function toWorkDTO(doc: {
   story: string
   featured: boolean
   order: number
+  serviceCat?: unknown
 }): WorkDTO {
   return {
     _id: String(doc._id),
@@ -48,6 +49,7 @@ function toWorkDTO(doc: {
     story: doc.story,
     featured: doc.featured,
     order: doc.order,
+    serviceId: doc.serviceCat ? String(doc.serviceCat) : '',
   }
 }
 
