@@ -49,7 +49,7 @@ export async function isAdminSession(): Promise<boolean> {
 }
 
 export function sessionCookieName() {
-  return COOKIE
+  return COOKIE 
 }
 
 export async function requireAdmin(): Promise<NextResponse | null> {

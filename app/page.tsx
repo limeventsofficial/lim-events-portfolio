@@ -20,7 +20,6 @@ export default async function Home() {
         heroCard={data.heroCard}
       />
       <Services services={data.services} />
-      <WorkShowcase works={data.works} />
       <About aboutStats={data.site.aboutStats} />
       <Contact contact={data.site.contact} siteYear={data.site.siteYear} />
     </main>

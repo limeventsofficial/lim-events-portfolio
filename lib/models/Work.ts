@@ -13,6 +13,7 @@ export type WorkDoc = {
   title: string
   date: string
   venue: string
+  serviceCat: mongoose.Types.ObjectId
   photos: { url: string; publicId?: string }[]
   story: string
   featured: boolean
@@ -26,6 +27,7 @@ const WorkSchema = new Schema<WorkDoc>(
     title: { type: String, required: true },
     date: { type: String, required: true },
     venue: { type: String, required: true },
+    serviceCat: {type: mongoose.Types.ObjectId, required: true},
     photos: { type: [WorkPhotoSchema], default: [] },
     story: { type: String, default: '' },
     featured: { type: Boolean, default: false },

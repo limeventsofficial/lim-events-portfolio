@@ -26,6 +26,7 @@ export type WorkDTO = {
   story: string
   featured: boolean
   order: number
+  serviceId: string
 }
 
 export type ServiceDTO = {
