@@ -24,9 +24,9 @@ export type WorkDoc = {
 
 const WorkSchema = new Schema<WorkDoc>(
   {
-    title: { type: String, required: true },
-    date: { type: String, required: true },
-    venue: { type: String, required: true },
+    title: { type: String, default: '' },
+    date: { type: String, default: '' },
+    venue: { type: String, default: '' },
     serviceCat: {type: mongoose.Types.ObjectId, required: true},
     photos: { type: [WorkPhotoSchema], default: [] },
     story: { type: String, default: '' },

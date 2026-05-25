@@ -12,11 +12,23 @@ type Props = {
 
 export default function WorkCard({ work, serviceTitle, whatsappNumber }: Props) {
   const photos = work.photos.slice(0, 3) // max 3 images
+  console.log(work.photos);
+  const selectedImage =
+  work.photos?.[0].url || work.photos[0].url || "";
 
-  const waMessage = encodeURIComponent(
-    `Hi! I'm interested in your *${serviceTitle}* service.\n\nI saw your work: *${work.title}* (${work.venue}, ${work.date}) and would love to discuss something similar for my event. 🎉`
-  )
-  const waLink = `https://wa.me/${whatsappNumber}?text=${waMessage}`
+const waMessage = encodeURIComponent(
+`Hi! I'm interested in your *${serviceTitle}* service.
+
+I saw your work:
+*${work.title}* (${work.venue}, ${work.date})
+
+Image:
+${selectedImage}
+
+I'd love to discuss something similar for my event. 🎉`
+)
+
+const waLink = `https://wa.me/${whatsappNumber}?text=${waMessage}`
 
   return (
     <motion.article
