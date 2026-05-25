@@ -919,3 +919,52 @@
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+
+/* ─── Upload button ──────────────────────────────────────── */
+.uploadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.62rem 1.2rem;
+  border-radius: 13px;
+  border: 1.5px dashed rgba(122,59,30,0.28);
+  background: #fdf8f2;
+  color: var(--brown);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.22s, background 0.22s, box-shadow 0.22s;
+  margin-bottom: 1rem;
+}
+.uploadBtn:hover {
+  border-color: rgba(242,169,126,0.75);
+  background: #fffaf5;
+  box-shadow: 0 4px 16px rgba(122,59,30,0.08);
+}
+.uploadBtnInput {
+  display: none;
+}
+.uploadBtnIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: linear-gradient(145deg, var(--brown) 0%, var(--brown-dark) 100%);
+  color: #fff;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* ─── Image skeleton ─────────────────────────────────────── */
+.imgSkeleton {
+  width: 100%;
+  height: 180px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #f0e6dc 25%, #faf4ee 50%, #f0e6dc 75%);
+  background-size: 200% 100%;
+  animation: adminShimmer 1.2s ease-in-out infinite;
+}

@@ -102,6 +102,7 @@ export default async function ServicePage({
                   work={work}
                   serviceTitle={service.title}
                   whatsappNumber={whatsappNumber}
+                  serviceId={service._id}
                 />
               ))}
             </div>

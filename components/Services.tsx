@@ -62,9 +62,9 @@ export default function Services({ services }: Props) {
   }, [])
 
   // Navigate to service page — reads from ref so always fresh
-  const navigateTo = useCallback((title: string) => {
+  const navigateTo = useCallback((title: string, sId: string) => {
     let slug = slugify(title)
-    router.push(`/services/${slug}`)
+    router.push(`/services/${slug}?sId=${sId}`)
   }, [router])
 
   if (!services.length) return null
@@ -112,7 +112,7 @@ export default function Services({ services }: Props) {
                   }}
                   transition={{ type: 'spring', stiffness: 260, damping: 26 }}
                   // Card click: if already active → navigate, else scroll to center
-                  onClick={() => navigateTo(s.title)}
+                  onClick={() => navigateTo(s.title, s._id)}
                 >
                   {/* Corner ornaments */}
                   <svg className={styles.cornerTL} viewBox="0 0 28 28" fill="none" aria-hidden="true">
@@ -149,7 +149,7 @@ export default function Services({ services }: Props) {
                     className={`${styles.ctaRow} ${isActive ? styles.ctaVisible : ''}`}
                     aria-label={`View works for ${s.title}`}
                     tabIndex={isActive ? 0 : -1}
-                    onClick={e => navigateTo(s.title)}
+                    onClick={e => navigateTo(s.title, s._id)}
                   >
                     <span className={styles.ctaLabel}>View Works</span>
                     <span className={styles.ctaArrow} style={{ background: s.color }}>→</span>

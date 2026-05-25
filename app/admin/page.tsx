@@ -62,18 +62,24 @@ function AdminSite({
             <p className={styles.sectionDesc}>Full-width image shown at the top of the site</p>
           </div>
         </div>
-        <label className={styles.label}>Upload new cover image</label>
-        <input type="file" accept="image/*" onChange={onHeroFile} className={styles.fileInput} />
+        <label className={styles.label}>Cover image</label>
+        <label className={styles.uploadBtn} aria-label="Upload new cover image">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={onHeroFile}
+            className={styles.uploadBtnInput}
+          />
+          <span className={styles.uploadBtnIcon}>↑</span>
+          Upload new cover
+        </label>
         {site.heroCoverUrl && (
           <div className={styles.preview}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={site.heroCoverUrl} alt="Hero cover preview" />
           </div>
         )}
-        <label className={styles.label} style={{ marginTop: '1rem' }}>
-          Current image URL
-        </label>
-        <input className={styles.input} value={site.heroCoverUrl} readOnly />
+        
       </div>
 
       <div className={styles.sectionCard}>

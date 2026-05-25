@@ -1,141 +1,224 @@
-/* ── Card shell ──────────────────────────────────────────────── */
+/* ── Card ── */
 .card {
   background: #fff;
-  border: 1px solid rgba(193, 101, 42, 0.1);
   border-radius: 20px;
   overflow: hidden;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  transition: border-color 0.25s;
 }
 
-.card:hover {
-  border-color: rgba(242, 169, 126, 0.45);
-}
+/* ── Image strip ── */
+.imageWrap { position: relative; background: #111; }
 
-/* ── Vertical image strip ────────────────────────────────────── */
 .imageStrip {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  /* Fixed height so all cards look consistent */
-  max-height: 420px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(193, 101, 42, 0.3) transparent;
-  background: #f5ede4;
-  flex-shrink: 0;
+  flex-direction: row;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  height: 210px;
 }
+.imageStrip::-webkit-scrollbar { display: none; }
 
-.imageStrip::-webkit-scrollbar {
-  width: 4px;
-}
-
-.imageStrip::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.imageStrip::-webkit-scrollbar-thumb {
-  background: rgba(193, 101, 42, 0.3);
-  border-radius: 2px;
-}
-
-/* Each image slot — tall rectangle for a strip feel */
 .imageSlot {
   position: relative;
-  width: 100%;
-  height: 180px;
   flex-shrink: 0;
-}
-
-.img {
-  object-fit: cover;
   width: 100%;
-  height: 100%;
-  display: block;
+  height: 210px;
+  scroll-snap-align: start;
+  cursor: zoom-in;
+  overflow: hidden;
 }
 
-/* ── Body ────────────────────────────────────────────────────── */
+.img { object-fit: cover; transition: transform 0.3s ease; }
+.imageSlot:hover .img { transform: scale(1.04); }
+
+.zoomHint {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.48);
+  color: #fff;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.imageSlot:hover .zoomHint { opacity: 1; }
+
+/* Dot indicators */
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 0 4px;
+  background: #fff;
+}
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ddd;
+  transition: all 0.25s;
+}
+.dotActive {
+  width: 14px;
+  border-radius: 3px;
+  background: #c1652a;
+}
+
+/* ── Body ── */
 .body {
-  padding: 1.5rem 1.75rem 1.75rem;
+  padding: 14px 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  flex: 1;
+  gap: 0;
 }
 
 .badge {
   display: inline-block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-terracotta, #c1652a);
-  background: rgba(193, 101, 42, 0.08);
-  padding: 0.25rem 0.65rem;
+  color: #93400f;
+  background: #fdeadf;
+  padding: 3px 10px;
   border-radius: 100px;
   width: fit-content;
+  margin-bottom: 8px;
 }
 
 .title {
-  font-family: var(--font-display, Georgia, serif);
-  font-size: 1.2rem;
-  color: var(--color-dark, #2c1810);
-  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a0f09;
+  margin: 0 0 8px;
   line-height: 1.3;
 }
 
-.meta {
+.metaRow {
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
-  gap: 0.35rem;
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--color-muted, #7a5c4e);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.metaChip {
+  font-size: 11px;
+  color: #7a5c4e;
+  background: #f7f0eb;
+  padding: 3px 9px;
+  border-radius: 20px;
 }
 
-.metaItem {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.dot {
-  opacity: 0.4;
+.divider {
+  border: none;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.07);
+  margin: 0 0 10px;
 }
 
 .story {
-  font-size: 0.875rem;
-  color: var(--color-muted, #7a5c4e);
+  font-size: 13px;
+  color: #6b5046;
   line-height: 1.7;
-  margin: 0;
-  flex: 1;
+  margin: 0 0 4px;
 }
 
-/* ── WhatsApp CTA ────────────────────────────────────────────── */
+.toggleBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c1652a;
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: 12px;
+  transition: opacity 0.15s;
+}
+.toggleBtn:hover { opacity: 0.65; }
+
+/* ── WhatsApp CTA ── */
 .waCta {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.55rem;
-  margin-top: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: #25d366;
+  gap: 8px;
+  padding: 12px;
+  background: #1fba5a;
   color: #fff;
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 600;
   text-decoration: none;
   border-radius: 12px;
-  letter-spacing: 0.02em;
+  margin-top: 4px;
   transition: background 0.2s;
-  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.25);
+}
+.waCta:hover { background: #1aa34f; }
+
+/* ── Lightbox ── */
+.lightboxOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(10, 5, 2, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  padding: 1rem;
+  backdrop-filter: blur(8px);
 }
 
-.waCta:hover {
-  background: #1ebe5d;
+.lightboxBox {
+  position: relative;
+  width: min(92vw, 720px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
-.waCta svg {
-  flex-shrink: 0;
+.lbImgWrap {
+  position: relative;
+  width: 100%;
+  height: min(70vh, 500px);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.lbImg { object-fit: contain; }
+
+.lbClose {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.lbClose:hover { background: rgba(193, 101, 42, 0.7); }
+
+.lbHint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
 }
