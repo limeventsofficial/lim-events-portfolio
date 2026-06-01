@@ -1,0 +1,102 @@
+/* ─── Custom FilterSelect (Radix UI) ─────────────────────────── */
+.baseSelect {
+  width: 100%;
+  padding: 0.68rem 0.9rem;
+  border-radius: 11px;
+  border: 1px solid rgba(122,59,30,0.12);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: #3d2a1a;
+  line-height: 1.5;
+}
+.trigger {
+  cursor: pointer;
+  background-color: #fdfaf6;
+  padding-right: 2.4rem;
+  transition: border-color 0.22s, box-shadow 0.22s, background-color 0.22s;
+  appearance: none;
+  background-image: none;
+  position: relative;
+}
+.trigger:hover {
+  border-color: rgba(122,59,30,0.25);
+  background-color: #fff;
+}
+.trigger[data-state='open'] {
+  border-color: rgba(242,169,126,0.75);
+  box-shadow: 0 0 0 3px rgba(242,169,126,0.16);
+  background-color: #fff;
+}
+.trigger:focus {
+  outline: none;
+  border-color: rgba(242,169,126,0.75);
+  box-shadow: 0 0 0 3px rgba(242,169,126,0.16);
+  background-color: #fff;
+}
+.icon {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #7a5a40;
+  transition: transform 0.2s;
+}
+.trigger[data-state='open'] .icon {
+  transform: translateY(-50%) rotate(180deg);
+}
+.content {
+  overflow: hidden;
+  background: #fff;
+  border-radius: 11px;
+  border: 1px solid rgba(122,59,30,0.12);
+  box-shadow: 0 4px 20px rgba(60,30,15,0.12), 0 8px 32px rgba(60,30,15,0.08);
+  max-height: 280px;
+  z-index: 50;
+  animation: contentOpen 0.2s ease-out;
+}
+@keyframes contentOpen {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.viewport {
+  padding: 0.35rem;
+}
+.item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 9px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: #3d2a1a;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+}
+.item:hover {
+  background: rgba(122,59,30,0.06);
+  color: #7a3b1e;
+}
+.item[data-state='checked'] {
+  background: rgba(242,169,126,0.12);
+  color: #7a3b1e;
+  font-weight: 500;
+}
+.item:focus {
+  outline: none;
+  background: rgba(242,169,126,0.12);
+  color: #7a3b1e;
+}
+.indicator {
+  margin-left: auto;
+  color: #7a3b1e;
+}
