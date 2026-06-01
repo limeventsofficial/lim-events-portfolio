@@ -11,10 +11,9 @@ function slugify(title: string) {
 }
 
 // Replace with however you fetch your site data (e.g. from Sanity / API)
-async function getSiteData() {
+async function getSiteData(serviceId?: string) {
     const { loadPublicSiteData } = await import('@/lib/site-data')
-    const data = await loadPublicSiteData()
-    return loadPublicSiteData()
+    return loadPublicSiteData({ includeWorks: true, serviceId })
 }
 
 // ── Metadata ──────────────────────────────────────────────────────────────────
@@ -47,18 +46,15 @@ export default async function ServicePage({
 }: {
   params: { slug: string }
 }) {
+  // First load: get services without works to find the service by slug
   const data = await getSiteData()
 
   const service = data.services.find((s) => slugify(s.title) === params.slug)
   if (!service) notFound()
 
-  // Filter works that belong to this service by matching title keyword
-  // Adjust this logic to match your actual data relationship
-  const relatedWorks = data.works.filter((w) =>
-    w.title.toLowerCase().includes(service.title.toLowerCase()) ||
-    // fallback: show all works if no keyword match (remove if you have a serviceId field)
-    data.works.length > 0
-  )
+  // Second load: get only works for this specific service
+  const serviceData = await getSiteData(service._id)
+  const relatedWorks = serviceData.works
 
   // WhatsApp number from site settings (strip non-digits, add country code if needed)
   const rawPhone = data.site.contact.phone.replace(/\D/g, '')

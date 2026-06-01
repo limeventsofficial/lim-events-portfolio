@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import { Service } from '@/lib/models/Service'
 import { ensureDatabaseSeed } from '@/lib/seed'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,6 +35,10 @@ export async function POST(req: Request) {
     desc,
     color: typeof color === 'string' ? color : '#fde8d8',
   })
+
+  // Revalidate public pages to show new service immediately
+  revalidatePath('/')
+  revalidatePath('/services/[slug]')
 
   return NextResponse.json({ service: doc.toObject() })
 }

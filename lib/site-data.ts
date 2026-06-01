@@ -10,6 +10,7 @@ import {
   DEFAULT_HERO_COVER,
 } from '@/lib/defaults'
 import type { PublicSiteData, ServiceDTO, WorkDTO, SiteSettingsDTO } from '@/types/site'
+import mongoose from 'mongoose'
 
 function toServiceDTO(doc: {
   _id: unknown
@@ -65,7 +66,7 @@ function staticFallback(): PublicSiteData {
   }
 }
 
-export async function loadPublicSiteData(): Promise<PublicSiteData> {
+export async function loadPublicSiteData(options?: { includeWorks?: boolean; serviceId?: string }): Promise<PublicSiteData> {
   if (!process.env.MONGODB_URI) {
     return staticFallback()
   }
@@ -86,15 +87,35 @@ export async function loadPublicSiteData(): Promise<PublicSiteData> {
     : defaultSiteSettings
 
   const servicesRaw = await Service.find().sort({ order: 1 }).lean()
-  const worksRaw = await Work.find().sort({ order: 1, createdAt: -1 }).lean()
-
   const services: ServiceDTO[] = servicesRaw.map(toServiceDTO)
-  const works: WorkDTO[] = worksRaw.map(toWorkDTO)
 
-  const featured = works.find((w) => w.featured)
-  const heroCard = featured
-    ? { title: featured.title, subtitle: `${featured.date} · ${featured.venue}` }
-    : defaultHeroCard
+  let works: WorkDTO[] = []
+  let heroCard = defaultHeroCard
+
+  if (options?.includeWorks !== false) {
+    let worksRaw
+    if (options?.serviceId) {
+      // Only load works for specific service
+      worksRaw = await Work.find({ serviceCat: new mongoose.Types.ObjectId(options.serviceId) })
+        .sort({ order: 1, createdAt: -1 })
+        .lean()
+    } else {
+      // Load all works
+      worksRaw = await Work.find().sort({ order: 1, createdAt: -1 }).lean()
+    }
+    works = worksRaw.map(toWorkDTO)
+    const featured = works.find((w) => w.featured)
+    heroCard = featured
+      ? { title: featured.title, subtitle: `${featured.date} · ${featured.venue}` }
+      : defaultHeroCard
+  } else {
+    // Only load featured work for hero card when works are excluded
+    const featuredRaw = await Work.findOne({ featured: true }).lean()
+    if (featuredRaw) {
+      const featured = toWorkDTO(featuredRaw)
+      heroCard = { title: featured.title, subtitle: `${featured.date} · ${featured.venue}` }
+    }
+  }
 
   return {
     site,

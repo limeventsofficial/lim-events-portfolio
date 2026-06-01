@@ -8,6 +8,7 @@ import mongoose from 'mongoose'
 import { normalizeWorkTitle, normalizeWorkLine } from '@/lib/work-fields'
 import { isPhoto, parseServiceId, toWorkClient, validateWorkPayload } from '@/lib/work-mapper'
 import type { WorkPhoto } from '@/lib/work-constants'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -76,6 +77,11 @@ export async function PUT(req: Request, { params }: Ctx) {
   }
 
   const updated = await Work.findByIdAndUpdate(params.id, { $set }, { new: true }).lean()
+
+  // Revalidate public pages to show updated work immediately
+  revalidatePath('/')
+  revalidatePath('/services/[slug]')
+
   return NextResponse.json({ work: toWorkClient(updated!) })
 }
 
@@ -102,5 +108,10 @@ export async function DELETE(_req: Request, { params }: Ctx) {
   }
 
   await Work.findByIdAndDelete(params.id)
+
+  // Revalidate public pages to reflect deletion
+  revalidatePath('/')
+  revalidatePath('/services/[slug]')
+
   return NextResponse.json({ ok: true })
 }
