@@ -828,7 +828,6 @@
     padding: 0.75rem 0.65rem 0.75rem 0.45rem;
   }
   .serviceCardActions, .workCardActions {
-    margin-left: 40px;
     gap: 0.4rem;
   }
   .serviceCardActions button, .workCardActions button {
@@ -862,13 +861,14 @@
     padding: 0.7rem 0.6rem 0.7rem 0.4rem;
   }
   .serviceCardActions, .workCardActions {
-    margin-left: 36px;
+    /* margin-left: 36px; */
     gap: 0.35rem;
   }
   .serviceCardActions button, .workCardActions button {
     min-width: 65px;
     font-size: 0.75rem;
     padding: 0.45rem 0.6rem;
+    max-width: 90%;
   }
   .dragHandle { width: 34px; min-height: 42px; }
   .serviceCardEmoji, .workCardThumb {
