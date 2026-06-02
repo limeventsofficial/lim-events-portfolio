@@ -1,7 +1,6 @@
 import Navbar from '@/components/Navbar'
 import Hero from '@/components/Hero'
 import Services from '@/components/Services'
-import WorkShowcase from '@/components/WorkShowcase'
 import About from '@/components/About'
 import Contact from '@/components/Contact'
 import { loadPublicSiteData } from '@/lib/site-data'
@@ -9,8 +8,7 @@ import { loadPublicSiteData } from '@/lib/site-data'
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const data = await loadPublicSiteData()
-  console.log(data, 'publicsite data')
+  const data = await loadPublicSiteData({ includeWorks: false })
   return (
     <main>
       <Navbar />

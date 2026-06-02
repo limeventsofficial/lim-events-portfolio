@@ -116,7 +116,8 @@ export default function Hero({ heroCoverUrl, heroStats, heroCard }: HeroProps) {
         <motion.h1 className={styles.headline} variants={fadeUp}>
           The elegant way to
           <em className={styles.accent}> plan &amp; celebrate</em>
-          <br />your events.
+          <br />
+          your events.
         </motion.h1>
 
         <motion.div className={styles.divider} variants={fadeUp} />

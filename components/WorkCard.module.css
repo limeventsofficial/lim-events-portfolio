@@ -6,6 +6,12 @@
   border: 0.5px solid rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
 }
 
 /* ── Image strip ── */
@@ -141,9 +147,12 @@
   cursor: pointer;
   text-align: left;
   margin-bottom: 12px;
-  transition: opacity 0.15s;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
-.toggleBtn:hover { opacity: 0.65; }
+.toggleBtn:hover {
+  opacity: 0.7;
+  transform: translateX(2px);
+}
 
 /* ── WhatsApp CTA ── */
 .waCta {
@@ -159,9 +168,14 @@
   text-decoration: none;
   border-radius: 12px;
   margin-top: 4px;
-  transition: background 0.2s;
+  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 4px 16px rgba(31, 186, 90, 0.25);
 }
-.waCta:hover { background: #1aa34f; }
+.waCta:hover {
+  background: #1aa34f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(31, 186, 90, 0.35);
+}
 
 /* ── Lightbox ── */
 .lightboxOverlay {

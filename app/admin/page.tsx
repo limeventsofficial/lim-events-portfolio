@@ -13,6 +13,7 @@ import { SortableServiceList } from '@/components/admin/SortableServiceList'
 import { WorkCard } from '@/components/admin/WorkCard'
 import { ServiceCreatePanel, emptyServiceDraft } from '@/components/admin/ServiceCreatePanel'
 import { WorkAddPanel } from '@/components/admin/WorkAddPanel'
+import FilterSelect from '@/components/admin/FilterSelect'
 import { emptyWorkAddDraft, type WorkAddDraft } from '@/components/admin/WorkAddFields'
 import { uploadFile } from '@/components/admin/upload'
 import { isServiceDraftValid, isWorkDraftValid } from '@/components/admin/validation'
@@ -234,6 +235,11 @@ export default function AdminPage() {
   const [workCreateLoading, setWorkCreateLoading] = useState(false)
   const [workUploading, setWorkUploading] = useState(false)
   const [isServiceDragging, setIsServiceDragging] = useState(false)
+  const [workFilterServiceId, setWorkFilterServiceId] = useState<string | null>(null)
+
+  const filteredWorks = workFilterServiceId
+    ? works.filter((w) => w.serviceId === workFilterServiceId)
+    : works
 
   const refresh = useCallback(async (silent = false) => {
     if (!silent) setDataLoading(true)
@@ -795,9 +801,24 @@ export default function AdminPage() {
                 {tab === 'works' && (
                   <div>
                     <div className={styles.listHeader}>
-                      <p className={styles.muted}>
-                        Each portfolio item links to a service. Required: service, description, and 1–3 photos.
-                      </p>
+                      <div style={{ flex: 1, minWidth: 'min(100%, 220px)' }}>
+                        <p className={styles.muted}>
+                          Each portfolio item links to a service. Required: service, description, and 1–3 photos.
+                        </p>
+                        {services.length > 0 && (
+                          <div className={styles.filterRow}>
+                            <label className={styles.label} htmlFor="work-filter">
+                              Filter by Service
+                            </label>
+                            <FilterSelect
+                              value={workFilterServiceId}
+                              onChange={setWorkFilterServiceId}
+                              options={services.map((s) => ({ value: s._id, label: s.title }))}
+                              placeholder="All Services"
+                            />
+                          </div>
+                        )}
+                      </div>
                       {!addingWork && (
                         <AdminButton
                           type="button"
@@ -872,8 +893,41 @@ export default function AdminPage() {
                           </AdminButton>
                         }
                       />
+                    ) : filteredWorks.length === 0 && !addingWork ? (
+                      <EmptyState
+                        icon="◎"
+                        title="No portfolio items found"
+                        description={
+                          workFilterServiceId
+                            ? `No portfolio items linked to the selected service.`
+                            : 'Showcase past events with photos and a short story.'
+                        }
+                        action={
+                          workFilterServiceId ? (
+                            <AdminButton
+                              type="button"
+                              variant="ghost"
+                              onClick={() => setWorkFilterServiceId(null)}
+                            >
+                              Clear filter
+                            </AdminButton>
+                          ) : (
+                            <AdminButton
+                              type="button"
+                              variant="primary"
+                              disabled={services.length === 0}
+                              onClick={() => {
+                                setAddingWork(true)
+                                setWorkDraft(emptyWorkAddDraft())
+                              }}
+                            >
+                              + Add work
+                            </AdminButton>
+                          )
+                        }
+                      />
                     ) : (
-                      works.map((w) => (
+                      filteredWorks.map((w) => (
                         <WorkCard
                           key={w._id}
                           work={w}

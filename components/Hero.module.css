@@ -2,11 +2,9 @@
 .hero {
   position: relative;
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   align-items: center;
   background: linear-gradient(160deg, #fdf6ee 0%, #fde8d8 40%, #fdf0e0 70%, #fdf6ee 100%);
-  overflow: hidden;
 }
 
 /* ─── Petal rain ──────────────────────────────── */
@@ -14,7 +12,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
+  z-index: 100;
   overflow: hidden;
 }
 
@@ -30,6 +28,7 @@
 .left {
   position: relative;
   z-index: 4;
+  flex: 1;
   padding: 6rem 3rem 6rem 5rem;
   display: flex;
   flex-direction: column;
@@ -171,66 +170,80 @@
 /* ─── Right panel ─────────────────────────────── */
 .right {
   position: relative;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
   min-height: 100vh;
   background: linear-gradient(135deg, #fde8d8 0%, #fdf0e0 100%);
-  border-left: 1px solid rgba(122, 59, 30, 0.08);
   z-index: 3;
+}
+
+/* Soft gradient overlay to unify left and right panels */
+.right::before {
+  content: '';
+  position: absolute;
+  left: -100px;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  background: linear-gradient(to right, transparent, rgba(253, 232, 216, 0.3));
+  pointer-events: none;
 }
 
 /* Large decorative background glyph */
 .bgText {
   position: absolute;
   font-family: 'Playfair Display', serif;
-  font-size: 11rem;
-  color: rgba(122, 59, 30, 0.05);
+  font-size: 14rem;
+  color: rgba(122, 59, 30, 0.04);
   font-weight: 600;
   user-select: none;
   line-height: 1;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 35%;
+  right: -5%;
+  transform: rotate(-8deg);
   white-space: nowrap;
   pointer-events: none;
+  z-index: 0;
 }
 
 /* ─── Card stack ──────────────────────────────── */
 .cardStack {
   position: relative;
-  width: 300px;
-  height: 380px;
+  width: 320px;
+  height: 400px;
+  margin-left: 40px;
 }
 
 .cardBack {
   position: absolute;
-  width: 240px;
-  height: 300px;
+  width: 260px;
+  height: 320px;
   background: #f2c4a0;
   border-radius: 20px;
-  top: 30px;
+  top: 40px;
   left: 50%;
-  transform: translateX(-50%) rotate(8deg);
-  opacity: 0.5;
+  transform: translateX(-50%) rotate(6deg);
+  opacity: 0.4;
 }
 
 .cardMid {
   position: absolute;
-  width: 240px;
-  height: 300px;
+  width: 260px;
+  height: 320px;
   background: #e8a07a;
   border-radius: 20px;
-  top: 20px;
+  top: 25px;
   left: 50%;
-  transform: translateX(-50%) rotate(-5deg);
-  opacity: 0.35;
+  transform: translateX(-50%) rotate(-4deg);
+  opacity: 0.3;
 }
 
 .cardMain {
   position: absolute;
-  width: 260px;
+  width: 280px;
   background: #fff8f3;
   border: 1px solid rgba(122, 59, 30, 0.15);
   border-radius: 20px;
@@ -238,7 +251,8 @@
   left: 50%;
   transform: translateX(-50%);
   padding: 1.5rem;
-  box-shadow: 0 20px 60px rgba(122, 59, 30, 0.12);
+  box-shadow: 0 24px 64px rgba(122, 59, 30, 0.15), 0 8px 24px rgba(122, 59, 30, 0.08);
+  z-index: 2;
 }
 
 .cardTag {
@@ -336,14 +350,15 @@
 /* ─── Floating elements ───────────────────────── */
 .floatingMini {
   position: absolute;
-  left: 20px;
-  top: 80px;
+  left: 40px;
+  top: 100px;
   background: #fff8f3;
   border: 1px solid rgba(122, 59, 30, 0.15);
   border-radius: 12px;
   padding: 0.75rem 1rem;
   box-shadow: 0 8px 24px rgba(122, 59, 30, 0.1);
   width: 150px;
+  z-index: 1;
 }
 
 .miniLabel {
@@ -368,8 +383,8 @@
 
 .floatingPill {
   position: absolute;
-  right: 30px;
-  bottom: 140px;
+  right: 60px;
+  bottom: 180px;
   background: #fff8f3;
   border: 1px solid rgba(122, 59, 30, 0.15);
   border-radius: 50px;
@@ -382,6 +397,7 @@
   color: #7a3b1e;
   font-weight: 500;
   white-space: nowrap;
+  z-index: 1;
 }
 
 .pillDot {
@@ -409,8 +425,7 @@
 /* ─── Responsive ──────────────────────────────── */
 @media (max-width: 900px) {
   .hero {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
+    flex-direction: column;
   }
 
   .left {
@@ -429,7 +444,6 @@
 
   .right {
     min-height: 520px;
-    border-left: none;
     border-top: 1px solid rgba(122, 59, 30, 0.08);
     display: none;
   }
@@ -441,6 +455,9 @@
 
   .bgText {
     font-size: 6rem;
+    top: 50%;
+    right: 50%;
+    transform: translate(50%, -50%) rotate(-8deg);
   }
 }
 
@@ -452,6 +469,7 @@
   .cardStack {
     width: 260px;
     height: 340px;
+    margin-left: 0;
   }
 
   .cardMain {

@@ -18,7 +18,6 @@ function getSecret() {
 
 export function verifyPassword(plain: string): boolean {
   const expected = process.env.ADMIN_PASSWORD
-  console.log(expected, plain)
   if (!expected || !plain) return false
   const a = Buffer.from(plain, 'utf8')
   const b = Buffer.from(expected, 'utf8')

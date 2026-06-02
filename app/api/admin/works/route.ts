@@ -6,6 +6,7 @@ import { ensureDatabaseSeed } from '@/lib/seed'
 import { normalizeWorkTitle, normalizeWorkLine } from '@/lib/work-fields'
 import { parseServiceId, toWorkClient, validateWorkPayload } from '@/lib/work-mapper'
 import mongoose from 'mongoose'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,6 +51,10 @@ export async function POST(req: Request) {
     featured: Boolean(featured),
     order: nextOrder,
   })
+
+  // Revalidate public pages to show new work immediately
+  revalidatePath('/')
+  revalidatePath('/services/[slug]')
 
   return NextResponse.json({ work: toWorkClient(doc.toObject()) })
 }

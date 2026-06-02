@@ -98,7 +98,10 @@
   color: var(--text-dark);
   border-right: 1px solid rgba(122,59,30,0.1);
   padding: 1.35rem 1rem 1.1rem;
-  position: relative; z-index: 40;
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 40;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
   transition: transform 0.4s cubic-bezier(0.22,1,0.36,1);
   box-shadow: 2px 0 20px rgba(122,59,30,0.06);
 }
@@ -200,7 +203,7 @@
 }
 
 /* ─── Main ───────────────────────────────────────────────── */
-.main { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 100vh; }
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
 /* ─── Header ─────────────────────────────────────────────── */
 .header {
@@ -291,7 +294,10 @@
 }
 .listHeader .muted { flex: 1; min-width: min(100%, 220px); }
 .listHeader > button, .listHeader > :global(button) { flex-shrink: 0; }
-
+.filterRow {
+  margin-top: 0.75rem;
+  max-width: 320px;
+}
 /* ─── Empty state ────────────────────────────────────────── */
 .emptyState {
   text-align: center; padding: 3.5rem 1rem; color: var(--text-light);
@@ -589,11 +595,13 @@
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   line-height: 1.45;
 }
 .serviceCardActions {
   display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;
+  flex-wrap: wrap;
 }
 .serviceCardChevron {
   font-size: 0.75rem; color: var(--text-light);
@@ -696,6 +704,7 @@
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   line-height: 1.45;
 }
@@ -707,6 +716,7 @@
 }
 .workCardActions {
   display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;
+  flex-wrap: wrap;
 }
 .workCardChevron {
   font-size: 0.75rem; color: var(--text-light);
@@ -743,6 +753,11 @@
 .itemSub { display: block; font-family: 'DM Sans', sans-serif; font-size: 0.73rem; color: var(--text-light); margin-top: 0.18rem; }
 .itemActions { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; }
 
+/* ─── Desktop ─────────────────────────────────────────────── */
+@media (min-width: 901px) {
+  .main { margin-left: 268px; }
+}
+
 /* ─── Mobile ─────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .sidebar {
@@ -759,6 +774,7 @@
   .row3 { grid-template-columns: 1fr 1fr; }
   .listHeader { flex-direction: column; align-items: stretch; }
   .listHeader > button { width: 100%; justify-content: center; }
+  .filterRow { max-width: 100%; }
   .createPanelActions { flex-wrap: wrap; }
   .createPanelActions > button { flex: 1; min-width: 120px; }
 }
@@ -774,8 +790,17 @@
   }
   .serviceCardMain, .workCardMain { width: calc(100% - 52px); }
   .serviceCardActions, .workCardActions {
-    width: 100%; justify-content: flex-end;
-    padding-top: 0.35rem; margin-left: 44px;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    padding-top: 0.5rem;
+    margin-left: 0;
+    gap: 0.5rem;
+  }
+  .serviceCardActions button, .workCardActions button {
+    min-height: 44px;
+    min-width: 100%;
+    width: 100%;
   }
   .serviceCardChevron, .workCardChevron { display: none; }
   .dragHandle { width: 40px; min-height: 48px; }
@@ -789,6 +814,76 @@
     flex-wrap: wrap; justify-content: stretch;
   }
   .serviceEditActions > button, .workEditActions > button { flex: 1; }
+}
+
+@media (max-width: 375px) {
+  .shell { overflow-x: hidden; }
+  .content { padding: 1rem 0.75rem 2rem; }
+  .contentInner { max-width: 100%; }
+  .sectionCard { padding: 1.25rem 1rem; border-radius: 16px; }
+  .header { padding: 0.85rem 0.75rem; }
+  .headerTitle { font-size: 1.1rem; }
+  .headerDesc { font-size: 0.72rem; }
+  .serviceCardRow, .workCardRow {
+    padding: 0.75rem 0.65rem 0.75rem 0.45rem;
+  }
+  .serviceCardActions, .workCardActions {
+    margin-left: 40px;
+    gap: 0.4rem;
+  }
+  .serviceCardActions button, .workCardActions button {
+    min-width: 70px;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.65rem;
+  }
+  .dragHandle { width: 36px; min-height: 44px; }
+  .serviceCardEmoji, .workCardThumb {
+    width: 40px; height: 40px;
+  }
+  .workCardThumbEmpty { width: 40px; height: 40px; }
+  .workCardThumbMore { width: 40px; height: 40px; font-size: 0.65rem; }
+  .serviceCardTitle, .workCardTitle { font-size: 0.95rem; }
+  .serviceCardDesc, .workCardDesc { font-size: 0.72rem; }
+  .btn { font-size: 0.8rem; padding: 0.5rem 0.9rem; }
+  .input, .textarea, .select { padding: 0.6rem 0.75rem; font-size: 0.85rem; }
+  .label { font-size: 0.62rem; }
+  .loginCard { padding: 1.5rem 1rem; border-radius: 18px; }
+  .loginBrandMark { width: 44px; height: 44px; font-size: 1.25rem; }
+  .sidebar { width: 260px; }
+}
+
+@media (max-width: 320px) {
+  .content { padding: 0.85rem 0.5rem 1.75rem; }
+  .sectionCard { padding: 1rem 0.75rem; }
+  .header { padding: 0.75rem 0.5rem; }
+  .headerTitle { font-size: 1rem; }
+  .headerDesc { font-size: 0.7rem; }
+  .serviceCardRow, .workCardRow {
+    padding: 0.7rem 0.6rem 0.7rem 0.4rem;
+  }
+  .serviceCardActions, .workCardActions {
+    margin-left: 36px;
+    gap: 0.35rem;
+  }
+  .serviceCardActions button, .workCardActions button {
+    min-width: 65px;
+    font-size: 0.75rem;
+    padding: 0.45rem 0.6rem;
+  }
+  .dragHandle { width: 34px; min-height: 42px; }
+  .serviceCardEmoji, .workCardThumb {
+    width: 38px; height: 38px;
+  }
+  .workCardThumbEmpty { width: 38px; height: 38px; }
+  .workCardThumbMore { width: 38px; height: 38px; font-size: 0.6rem; }
+  .serviceCardTitle, .workCardTitle { font-size: 0.9rem; }
+  .serviceCardDesc, .workCardDesc { font-size: 0.7rem; }
+  .btn { font-size: 0.75rem; padding: 0.45rem 0.8rem; }
+  .input, .textarea, .select { padding: 0.55rem 0.65rem; font-size: 0.8rem; }
+  .label { font-size: 0.6rem; }
+  .loginCard { padding: 1.25rem 0.85rem; }
+  .loginBrandMark { width: 40px; height: 40px; font-size: 1.15rem; }
+  .sidebar { width: 250px; }
 }
 
 /* ─── Modal ──────────────────────────────────────────────── */

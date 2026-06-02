@@ -262,6 +262,7 @@
   font-weight: 300;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -414,7 +415,24 @@
     opacity: 1 !important;
     transform: none !important;
     scroll-snap-align: unset;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
   }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow:
+      0 8px 24px rgba(58,32,16,0.08),
+      0 32px 80px rgba(122,59,30,0.2);
+  }
+
+  .card:active {
+    transform: translateY(-5px) scale(0.98);
+  }
+
+  .card:hover .ctaArrow {
+    transform: translateX(3px);
+  }
+
   .dots {
     display: none;
   }
