@@ -16,7 +16,7 @@ const STORY_LIMIT = 90
 
 export default function WorkCard({ work, serviceTitle, whatsappNumber, serviceId }: Props) {
   if (serviceId !== work.serviceId) return null
-
+  console.log(whatsappNumber, work, "number has been changed or no0t")
   const photos = work.photos.slice(0, 3)
   const [expanded, setExpanded] = useState(false)
   const [lightbox, setLightbox] = useState<string | null>(null)
