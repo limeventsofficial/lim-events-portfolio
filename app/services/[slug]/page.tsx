@@ -60,7 +60,7 @@ export default async function ServicePage({
   const rawPhone = data.site.contact.phone.replace(/\D/g, '')
   // If your number already has country code (e.g. 91...) use as-is, else prefix 91 for India
   const whatsappNumber = rawPhone.startsWith('91') ? rawPhone : `91${rawPhone}`
-  console.log(rowPhone, data.site.contact.phone,'phone number details')
+  console.log(rawPhone, data.site.contact.phone,whatsappNumber,'phone number details')
   return (
     <main className={styles.page}>
       {/* ── Back nav ── */}
