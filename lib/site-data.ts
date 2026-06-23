@@ -66,6 +66,7 @@ function staticFallback(): PublicSiteData {
     services: defaultServicesSeed.map((s, i) => ({
       _id: `local-${i}`,
       firstWorkImage: null,
+      workCount: 0,   // ✅ add this
       ...s,
     })),
     works: [],
