@@ -36,7 +36,10 @@ export type ServiceDTO = {
   title: string
   desc: string
   color: string
+  firstWorkImage: string | null
+  workCount: number  // ← add this
 }
+
 
 export type HeroCardCopy = {
   title: string

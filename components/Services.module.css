@@ -130,7 +130,7 @@
 /* ── Card ────────────────────────────────────────────────── */
 .card {
   position: relative;
-  width: 248px;
+  width: 320px;
   min-height: 310px;
   background: var(--white);
   border: 1px solid rgba(122,59,30,0.09);
@@ -147,7 +147,6 @@
     0 2px 6px rgba(58,32,16,0.04),
     0 8px 28px rgba(58,32,16,0.07);
   transition: box-shadow 0.35s ease, border-color 0.35s ease;
-  /* Scale handled by framer-motion */
   will-change: transform, opacity;
 }
 
@@ -279,11 +278,12 @@
   border: none !important;
   padding: 3px 10px;
   border-radius: 10px;
+  background: transparent;
 }
 
 .ctaVisible {
   border: none;
-  opacity: 0;
+  opacity: 1;
   transform: translateY(0);
 }
 
@@ -386,13 +386,11 @@
     width: calc(50vw - 140px);
   }
 
-  /* Hide swipe hint on desktop */
   .hint {
     display: none;
   }
 }
 
-/* On very wide screens, if cards fit — switch to centered flex grid */
 @media (min-width: 1280px) {
   .track {
     overflow-x: visible;
@@ -410,7 +408,6 @@
     display: none;
   }
 
-  /* Disable carousel scale on desktop — all cards show equally */
   .card {
     opacity: 1 !important;
     transform: none !important;
@@ -436,8 +433,118 @@
   .dots {
     display: none;
   }
+
   .ctaRow {
     opacity: 1 !important;
     transform: translateY(0) !important;
   }
+}
+
+/* ── Card background image ───────────────────────────────────── */
+.cardBg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  border-radius: 24px;
+  z-index: 0;
+  transition: transform 500ms ease;
+}
+
+.card:hover .cardBg {
+  transform: scale(1.06);
+}
+
+.cardOverlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  z-index: 1;
+  background: linear-gradient(
+    160deg,
+    rgba(26, 10, 4, 0.82) 0%,
+    rgba(26, 10, 4, 0.58) 55%,
+    rgba(26, 10, 4, 0.75) 100%
+  );
+  transition: background 0.3s ease;
+}
+
+.cardActive .cardOverlay {
+  background: linear-gradient(
+    160deg,
+    rgba(26, 10, 4, 0.72) 0%,
+    rgba(26, 10, 4, 0.45) 55%,
+    rgba(26, 10, 4, 0.65) 100%
+  );
+}
+
+/* Lift all card children above bg + overlay */
+.cornerTL,
+.cornerBR,
+.glow,
+.ghostNum,
+.iconWrap,
+.cardBody,
+.ctaRow,
+.stripe {
+  position: relative;
+  z-index: 2;
+}
+
+/* Text becomes white when bg image is present */
+.cardTitle {
+  color: #fff;
+}
+
+.cardDesc {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.ctaLabel {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.ghostNum {
+  color: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Loading overlay ─────────────────────────────────────── */
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  border-radius: 24px;
+  background: rgba(10, 4, 2, 0.62);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+/* Arc spinner — uses card's accent color via inline borderTopColor */
+.spinner {
+  display: block;
+  width: 32px;
+  height: 32px;
+  border: 2.5px solid rgba(255, 255, 255, 0.18);
+  border-top-color: /* set inline */ transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loadingText {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
 }

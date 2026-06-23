@@ -11,15 +11,18 @@ import {
 } from '@/lib/defaults'
 import type { PublicSiteData, ServiceDTO, WorkDTO, SiteSettingsDTO } from '@/types/site'
 import mongoose from 'mongoose'
-
-function toServiceDTO(doc: {
-  _id: unknown
-  order: number
-  icon: string
-  title: string
-  desc: string
-  color: string
-}): ServiceDTO {
+function toServiceDTO(
+  doc: {
+    _id: unknown
+    order: number
+    icon: string
+    title: string
+    desc: string
+    color: string
+  },
+  firstWorkImage?: string,
+  workCount?: number
+): ServiceDTO {
   return {
     _id: String(doc._id),
     order: doc.order,
@@ -27,6 +30,8 @@ function toServiceDTO(doc: {
     title: doc.title,
     desc: doc.desc,
     color: doc.color,
+    firstWorkImage: firstWorkImage ?? null,
+    workCount: workCount ?? 0,
   }
 }
 
@@ -60,13 +65,16 @@ function staticFallback(): PublicSiteData {
     heroCard: { ...defaultHeroCard },
     services: defaultServicesSeed.map((s, i) => ({
       _id: `local-${i}`,
+      firstWorkImage: null,
       ...s,
     })),
     works: [],
   }
 }
 
-export async function loadPublicSiteData(options?: { includeWorks?: boolean; serviceId?: string }): Promise<PublicSiteData> {
+export async function loadPublicSiteData(
+  options?: { includeWorks?: boolean; serviceId?: string }
+): Promise<PublicSiteData> {
   if (!process.env.MONGODB_URI) {
     return staticFallback()
   }
@@ -87,7 +95,32 @@ export async function loadPublicSiteData(options?: { includeWorks?: boolean; ser
     : defaultSiteSettings
 
   const servicesRaw = await Service.find().sort({ order: 1 }).lean()
-  const services: ServiceDTO[] = servicesRaw.map(toServiceDTO)
+// Fetch first work image + count per service in one query
+  const serviceIds = servicesRaw.map((s) => s._id)
+  const firstWorks = await Work.aggregate([
+    { $match: { serviceCat: { $in: serviceIds } } },
+    { $sort: { order: 1, createdAt: -1 } },
+    {
+      $group: {
+        _id: '$serviceCat',
+        firstPhoto: { $first: '$photos' },
+        workCount: { $sum: 1 },
+      },
+    },
+  ])
+
+  // Build maps: serviceId → first image URL & work count
+  const imageMap = new Map<string, string>()
+  const countMap = new Map<string, number>()
+  for (const w of firstWorks) {
+    const url = w.firstPhoto?.[0]?.url
+    if (url) imageMap.set(String(w._id), url)
+    countMap.set(String(w._id), w.workCount)
+  }
+
+ const services: ServiceDTO[] = servicesRaw
+  .map((s) => toServiceDTO(s, imageMap.get(String(s._id)), countMap.get(String(s._id)) ?? 0))
+  .filter((s) => s.workCount > 0)  // ← only services with at least one work
 
   let works: WorkDTO[] = []
   let heroCard = defaultHeroCard
@@ -95,12 +128,10 @@ export async function loadPublicSiteData(options?: { includeWorks?: boolean; ser
   if (options?.includeWorks !== false) {
     let worksRaw
     if (options?.serviceId) {
-      // Only load works for specific service
       worksRaw = await Work.find({ serviceCat: new mongoose.Types.ObjectId(options.serviceId) })
         .sort({ order: 1, createdAt: -1 })
         .lean()
     } else {
-      // Load all works
       worksRaw = await Work.find().sort({ order: 1, createdAt: -1 }).lean()
     }
     works = worksRaw.map(toWorkDTO)
@@ -109,7 +140,6 @@ export async function loadPublicSiteData(options?: { includeWorks?: boolean; ser
       ? { title: featured.title, subtitle: `${featured.date} · ${featured.venue}` }
       : defaultHeroCard
   } else {
-    // Only load featured work for hero card when works are excluded
     const featuredRaw = await Work.findOne({ featured: true }).lean()
     if (featuredRaw) {
       const featured = toWorkDTO(featuredRaw)
